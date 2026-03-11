@@ -39,10 +39,12 @@ cors = CORS(
        'http://127.0.0.1:4600',
        'http://localhost:4000',
        'http://127.0.0.1:4000',
+       'http://localhost:4599',
+       'https://acs404.github.io/ACSmap_frontend/',
        'https://open-coding-society.github.io',
        'https://pages.opencodingsociety.com',
    ],
-   methods=["GET", "POST", "PUT", "OPTIONS"]
+   methods=["GET", "POST", "PUT", "OPTIONS", "DELETE"]
 )
 
 
