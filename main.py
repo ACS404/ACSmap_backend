@@ -48,6 +48,9 @@ from model.microblog import MicroBlog, Topic, initMicroblogs
 from hacks.jokes import initJokes 
 # from model.announcement import Announcement ##temporary revert
 
+# from gemini API
+from api.acs_chat_api import acs_chat_api
+
 # server only Views
 
 import os
@@ -84,6 +87,8 @@ app.register_blueprint(joke_api)  # Register the joke API blueprint
 app.register_blueprint(post_api)  # Register the social media post API
 # app.register_blueprint(announcement_api) ##temporary revert
 app.register_blueprint(treatment_api)
+# app.register_blueprint(acs_chat_api)
+app.register_blueprint(acs_chat_api)
 
 # Jokes file initialization
 with app.app_context():
