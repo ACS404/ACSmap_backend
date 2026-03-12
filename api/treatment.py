@@ -12,14 +12,13 @@ Endpoints:
 
   GET    /api/medication/info?name=X         — Gemini-powered description
 
-Requires GEMINI_API_KEY in your .env for the medication info endpoint.
+GEMINI_API_KEY and GEMINI_SERVER are read from app.config (set in __init__.py).
 """
 
-import os
 import requests as http
 from datetime import date, datetime
 
-from flask import Blueprint, g, jsonify, request
+from flask import Blueprint, current_app, g, jsonify, request
 from flask_restful import Api, Resource
 from sqlalchemy.exc import IntegrityError
 
@@ -31,15 +30,8 @@ from model.treatment import Treatment, TreatmentLog
 treatment_api = Blueprint('treatment_api', __name__, url_prefix='/api')
 api = Api(treatment_api)
 
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-# gemini-2.0-flash is fast and free-tier friendly
-GEMINI_URL = (
-    'https://generativelanguage.googleapis.com/v1beta/models/'
-    'gemini-2.0-flash:generateContent'
-)
 
-
-# ── Helper ────────────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 def _parse_date(s):
     """Parse ISO date string or return None."""
     try:
@@ -51,10 +43,18 @@ def _parse_date(s):
 def _gemini_describe(medication_name: str) -> str:
     """
     Ask Gemini for a short description of a medication.
-    Returns a plain-text string (2-3 sentences).
+    Pulls GEMINI_API_KEY and GEMINI_SERVER from app.config so they stay
+    in sync with the values loaded in __init__.py.
     """
-    if not GEMINI_API_KEY:
-        return 'AI descriptions are not configured on this server. Add GEMINI_API_KEY to your .env.'
+    api_key = current_app.config.get('GEMINI_API_KEY')
+    # __init__.py sets GEMINI_SERVER to gemini-2.5-flash by default
+    gemini_url = current_app.config.get(
+        'GEMINI_SERVER',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+    )
+
+    if not api_key:
+        return 'AI descriptions are not configured. Add GEMINI_API_KEY to your .env.'
 
     prompt = (
         f'You are a helpful medical information assistant. '
@@ -65,28 +65,20 @@ def _gemini_describe(medication_name: str) -> str:
     )
 
     payload = {
-        'contents': [
-            {
-                'parts': [{'text': prompt}]
-            }
-        ],
-        'generationConfig': {
-            'maxOutputTokens': 250,
-            'temperature': 0.2,
-        }
+        'contents': [{'parts': [{'text': prompt}]}],
+        'generationConfig': {'maxOutputTokens': 250, 'temperature': 0.2},
     }
 
     try:
         resp = http.post(
-            GEMINI_URL,
-            params={'key': GEMINI_API_KEY},
+            gemini_url,
+            params={'key': api_key},
             json=payload,
             timeout=12,
         )
         resp.raise_for_status()
         data = resp.json()
 
-        # Navigate Gemini response: candidates[0].content.parts[0].text
         text = (
             data
             .get('candidates', [{}])[0]
@@ -115,6 +107,10 @@ def _gemini_describe(medication_name: str) -> str:
 
 class TreatmentCRUD(Resource):
     """GET / POST / PUT / DELETE /api/treatments"""
+
+    # Allow CORS preflight through without auth
+    def options(self):
+        return {}, 200
 
     @token_required()
     def get(self):
@@ -194,7 +190,6 @@ class TreatmentCRUD(Resource):
         if not t:
             return {'message': 'Treatment not found'}, 404
 
-        # Soft-delete to preserve log history
         t.active = False
         db.session.commit()
         return {'message': 'Treatment removed'}, 200
@@ -202,8 +197,11 @@ class TreatmentCRUD(Resource):
 
 class TreatmentLogAPI(Resource):
     """GET  /api/treatment/log?date=YYYY-MM-DD
-       POST /api/treatment/log  { treatment_id, date, time_slot, taken }
+       POST /api/treatment/log
     """
+
+    def options(self):
+        return {}, 200
 
     @token_required()
     def get(self):
@@ -266,10 +264,11 @@ class TreatmentLogAPI(Resource):
 
 
 class MedicationInfo(Resource):
-    """GET /api/medication/info?name=Metformin
-    Calls Gemini to return a short description of the medication.
-    Reads GEMINI_API_KEY from environment / .env.
-    """
+    """GET /api/medication/info?name=Metformin"""
+
+    # ↓ This is the critical fix — OPTIONS must return 200 without hitting @token_required
+    def options(self):
+        return {}, 200
 
     @token_required()
     def get(self):
