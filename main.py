@@ -26,6 +26,9 @@ from api.classroom_api import classroom_api
 from api.data_export_import_api import data_export_import_api
 from hacks.joke import joke_api  # Import the joke API blueprint
 from api.post import post_api  # Import the social media post API
+from model.treatment import Treatment, TreatmentLog   # add near other model imports
+from api.treatment import treatment_api                 # add near blueprint registrations
+
 #from api.announcement import announcement_api ##temporary revert
 
 # database Initialization functions
@@ -80,6 +83,7 @@ app.register_blueprint(data_export_import_api)  # Register the data export/impor
 app.register_blueprint(joke_api)  # Register the joke API blueprint
 app.register_blueprint(post_api)  # Register the social media post API
 # app.register_blueprint(announcement_api) ##temporary revert
+app.register_blueprint(treatment_api)
 
 # Jokes file initialization
 with app.app_context():
