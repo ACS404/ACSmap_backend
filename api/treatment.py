@@ -72,6 +72,50 @@ def _gemini_describe(medication_name):
     except Exception as e:
         print(f'[Gemini] {e}')
         return 'Could not retrieve medication information.'
+    
+# ─── Add this helper function alongside _gemini_describe ─────────────────────
+ 
+def _gemini_cancer_analysis(profile: dict) -> str:
+    api_key = current_app.config.get('GEMINI_API_KEY')
+    url = current_app.config.get('GEMINI_SERVER',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent')
+    if not api_key:
+        return 'Add GEMINI_API_KEY to your .env to enable AI analysis.'
+ 
+    prompt = f"""You are an oncology risk communication specialist. A patient has used an ACS Cancer Facts & Figures 2026-based calculator. Write a warm, clear, 3-paragraph personalized risk narrative. Do NOT use markdown or bullet points — write flowing prose only.
+ 
+Patient profile:
+- Age: {profile['age']}, Sex: {profile['sex']}, Race/Ethnicity: {profile['race']}
+- Smoking: {profile['smoking']}{(', pack-years: ' + str(profile['packYears'])) if profile.get('packYears') else ''}
+- Alcohol: {profile['alcohol']}, BMI: {profile['bmi']}, Activity: {profile['activity']}, Diet: {profile['diet']}
+- Occupational exposures: {', '.join(profile['exposures']) if profile['exposures'] else 'none'}
+- Family history of cancer: {profile['familyHistory']}, Genetic mutation (BRCA/Lynch): {profile['geneticMutation']}
+- Personal cancer history: {profile['personalCancer']}, Hepatitis B/C: {profile['hepatitis']}, Type 2 Diabetes: {profile['diabetes']}, IBD: {profile['ibd']}, Radon exposure: {profile['radon']}, High UV exposure: {profile['uv']}
+ 
+Cancer assessed: {profile['cancerLabel']}
+US population baseline lifetime risk: {profile['baseRisk']}%
+Estimated lifetime risk: {profile['finalRisk']}%
+Overall risk multiplier: {profile['multiplier']}×
+Key risk factors: {profile['factorSummary']}
+ 
+Instructions:
+Paragraph 1: Explain what the {profile['finalRisk']}% estimate means in plain language, how it compares to the US average, and acknowledge any race/ethnicity-specific context from ACS 2026 data.
+Paragraph 2: Address the 2-3 highest-impact risk factors specifically and explain the underlying biology or mechanism in simple terms.
+Paragraph 3: Give 3 specific, actionable prevention or early detection steps this person should discuss with their doctor, grounded in ACS 2026 screening guidelines. End with an encouraging but realistic tone."""
+ 
+    try:
+        r = http.post(url, params={'key': api_key},
+                      json={'contents': [{'parts': [{'text': prompt}]}],
+                            'generationConfig': {'maxOutputTokens': 900, 'temperature': 0.4}},
+                      timeout=20)
+        r.raise_for_status()
+        return (r.json().get('candidates', [{}])[0]
+                        .get('content', {})
+                        .get('parts', [{}])[0]
+                        .get('text', 'No analysis available.')).strip()
+    except Exception as e:
+        print(f'[Gemini cancer] {e}')
+        return 'Could not generate cancer risk analysis.'
 
 
 # ─── /api/treatments ──────────────────────────────────────────────────────────
@@ -193,3 +237,27 @@ def medication_info():
     if not name:
         return jsonify({'message': 'name required'}), 400
     return jsonify({'description': _gemini_describe(name)})
+
+@treatment_api.route('/cancer/risk-analysis', methods=['POST', 'OPTIONS'])
+def cancer_risk_analysis():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+ 
+    user, err = _require_user()
+    if err:
+        return err
+ 
+    profile = request.get_json() or {}
+    required = ['age', 'sex', 'race', 'smoking', 'alcohol', 'bmi',
+                'activity', 'diet', 'cancer', 'cancerLabel',
+                'baseRisk', 'finalRisk', 'multiplier', 'factorSummary']
+    missing = [k for k in required if k not in profile]
+    if missing:
+        return jsonify({'message': f'Missing fields: {missing}'}), 400
+ 
+    profile.setdefault('exposures', [])
+    profile.setdefault('packYears', 0)
+    for flag in ('familyHistory','geneticMutation','personalCancer','hepatitis','diabetes','ibd','radon','uv'):
+        profile.setdefault(flag, False)
+ 
+    return jsonify({'analysis': _gemini_cancer_analysis(profile)})
