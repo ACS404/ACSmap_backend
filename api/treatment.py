@@ -21,6 +21,7 @@ from datetime import date, datetime
 from flask import Blueprint, current_app, g, jsonify, request
 from flask_restful import Api, Resource
 from sqlalchemy.exc import IntegrityError
+from __init__ import cors
 
 from __init__ import db
 from api.authorize import token_required
