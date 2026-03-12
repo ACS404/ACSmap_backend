@@ -62,7 +62,7 @@ def _gemini_describe(medication_name):
     try:
         r = http.post(url, params={'key': api_key},
                       json={'contents': [{'parts': [{'text': prompt}]}],
-                            'generationConfig': {'maxOutputTokens': 250, 'temperature': 0.2}},
+                            'generationConfig': {'maxOutputTokens': 600, 'temperature': 0.2}},
                       timeout=12)
         r.raise_for_status()
         return (r.json().get('candidates', [{}])[0]
