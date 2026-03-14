@@ -1,7 +1,7 @@
 """
-Cancer Risk Prediction Model
+Cancer Risk Prediction Model - Enhanced Version
 Uses machine learning to predict cancer risk based on demographic and lifestyle factors
-Based on ACS Cancer Facts & Figures 2026 data
+Based on ACS Cancer Facts & Figures 2026 data with expanded medical history factors
 """
 
 from sklearn.tree import DecisionTreeClassifier
@@ -29,11 +29,14 @@ class CancerRiskModel:
         self.dt_model = None
         self.scaler = StandardScaler()
         
-        # Define feature columns
+        # Define feature columns - EXPANDED
         self.features = [
             'age', 'sex', 'race', 'smoking_status', 'pack_years',
             'bmi_category', 'alcohol_consumption', 'physical_activity',
-            'diet_quality', 'family_history', 'diabetes', 'hepatitis'
+            'diet_quality', 'family_history', 'diabetes', 'hepatitis',
+            'hpv', 'h_pylori', 'ibd', 'radiation_history',
+            'immunosuppression', 'precancerous_lesions',
+            'occupational_exposure', 'uv_exposure'
         ]
         
         # Generate synthetic training data based on ACS 2026 statistics
@@ -82,19 +85,45 @@ class CancerRiskModel:
         # Diet quality (0=poor, 1=average, 2=healthy)
         diet = np.random.choice([0, 1, 2], n_samples, p=[0.20, 0.60, 0.20])
         
-        # Family history (0=no, 1=yes)
-        family_history = np.random.binomial(1, 0.15, n_samples)
+        # Family history (0=no, 1=yes) - 10-15% prevalence
+        family_history = np.random.binomial(1, 0.13, n_samples)
         
-        # Diabetes (0=no, 1=yes)
-        diabetes = np.random.binomial(1, 0.11, n_samples)  # ~11% US prevalence
+        # Diabetes (0=no, 1=yes) - ~11% US prevalence
+        diabetes = np.random.binomial(1, 0.11, n_samples)
         
-        # Hepatitis (0=no, 1=yes)
-        hepatitis = np.random.binomial(1, 0.02, n_samples)  # ~2% prevalence
+        # Hepatitis (0=no, 1=yes) - ~2% prevalence
+        hepatitis = np.random.binomial(1, 0.02, n_samples)
+        
+        # HPV infection (0=no, 1=yes) - ~43% prevalence in adults
+        hpv = np.random.binomial(1, 0.12, n_samples)
+        
+        # H. pylori infection (0=no, 1=yes) - ~35% global prevalence
+        h_pylori = np.random.binomial(1, 0.15, n_samples)
+        
+        # Inflammatory bowel disease (0=no, 1=yes) - ~1.3% prevalence
+        ibd = np.random.binomial(1, 0.013, n_samples)
+        
+        # History of radiation therapy (0=no, 1=yes) - ~5% prevalence
+        radiation_history = np.random.binomial(1, 0.05, n_samples)
+        
+        # Immunosuppression (0=no, 1=yes) - ~3% prevalence
+        immunosuppression = np.random.binomial(1, 0.03, n_samples)
+        
+        # Precancerous lesions (0=no, 1=yes) - ~8% prevalence
+        precancerous_lesions = np.random.binomial(1, 0.08, n_samples)
+        
+        # Occupational chemical exposure (0=no, 1=yes) - ~10% prevalence
+        occupational_exposure = np.random.binomial(1, 0.10, n_samples)
+        
+        # High UV exposure (0=no, 1=yes) - ~20% prevalence
+        uv_exposure = np.random.binomial(1, 0.20, n_samples)
         
         # Calculate risk score based on ACS 2026 relative risk factors
         risk_score = self._calculate_synthetic_risk(
             ages, sex, race, smoking_status, pack_years, bmi_category,
-            alcohol, activity, diet, family_history, diabetes, hepatitis
+            alcohol, activity, diet, family_history, diabetes, hepatitis,
+            hpv, h_pylori, ibd, radiation_history, immunosuppression,
+            precancerous_lesions, occupational_exposure, uv_exposure
         )
         
         # Convert risk score to binary high/low risk (threshold at 75th percentile)
@@ -115,6 +144,14 @@ class CancerRiskModel:
             'family_history': family_history,
             'diabetes': diabetes,
             'hepatitis': hepatitis,
+            'hpv': hpv,
+            'h_pylori': h_pylori,
+            'ibd': ibd,
+            'radiation_history': radiation_history,
+            'immunosuppression': immunosuppression,
+            'precancerous_lesions': precancerous_lesions,
+            'occupational_exposure': occupational_exposure,
+            'uv_exposure': uv_exposure,
             'risk_score': risk_score,
             'high_risk': high_risk
         })
@@ -122,7 +159,9 @@ class CancerRiskModel:
         return data
     
     def _calculate_synthetic_risk(self, age, sex, race, smoking, pack_years, bmi,
-                                   alcohol, activity, diet, family_hist, diabetes, hepatitis):
+                                   alcohol, activity, diet, family_hist, diabetes, hepatitis,
+                                   hpv, h_pylori, ibd, radiation_hist, immunosupp,
+                                   precancer, occup_exp, uv_exp):
         """Calculate synthetic risk score based on ACS 2026 relative risk multipliers."""
         
         # Base risk increases exponentially with age
@@ -156,20 +195,43 @@ class CancerRiskModel:
                     np.where(diet == 1, 1.0,  # Average
                             1.2))  # Poor
         
-        # Family history multiplier
+        # Family history multiplier (1.5-2x risk for most cancers)
         family_mult = np.where(family_hist == 1, 1.7, 1.0)
         
-        # Diabetes multiplier
+        # Diabetes multiplier (increased risk for pancreas, liver, colorectal, uterine)
         diabetes_mult = np.where(diabetes == 1, 1.3, 1.0)
         
-        # Hepatitis multiplier (major risk for liver cancer)
+        # Hepatitis multiplier (major risk for liver cancer - ~75% of liver cancers)
         hepatitis_mult = np.where(hepatitis == 1, 3.0, 1.0)
+        
+        # HPV multiplier (causes cervical, oropharyngeal, anal cancers)
+        hpv_mult = np.where(hpv == 1, 2.0, 1.0)
+        
+        # H. pylori multiplier (increases gastric cancer risk 2-6x)
+        h_pylori_mult = np.where(h_pylori == 1, 2.5, 1.0)
+        
+        # IBD multiplier (increases colorectal cancer risk 2-3x)
+        ibd_mult = np.where(ibd == 1, 2.5, 1.0)
+        
+        # Radiation history multiplier (increases leukemia, thyroid, breast cancer)
+        radiation_mult = np.where(radiation_hist == 1, 2.0, 1.0)
+        
+        # Immunosuppression multiplier (increases lymphoma, skin cancer risk)
+        immunosupp_mult = np.where(immunosupp == 1, 2.2, 1.0)
+        
+        # Precancerous lesions multiplier (5-20x risk depending on type)
+        precancer_mult = np.where(precancer == 1, 3.5, 1.0)
+        
+        # Occupational exposure multiplier (asbestos, benzene, etc.)
+        occup_mult = np.where(occup_exp == 1, 1.5, 1.0)
+        
+        # UV exposure multiplier (increases skin cancer risk 2-3x)
+        uv_mult = np.where(uv_exp == 1, 1.8, 1.0)
         
         # Sex-based baseline (males have higher overall cancer incidence)
         sex_mult = np.where(sex == 1, 1.15, 1.0)
         
         # Race-based multipliers (from ACS Table 9)
-        # Black men have 14% higher mortality, AIAN highest rates
         race_mult = np.where(race == 1, 1.14,  # Black
                     np.where(race == 3, 1.20,  # AIAN
                     np.where(race == 4, 0.90,  # AAPI
@@ -179,7 +241,10 @@ class CancerRiskModel:
         # Combine all multipliers
         risk_score = (base_risk * smoke_mult * bmi_mult * alc_mult * 
                      activity_mult * diet_mult * family_mult * 
-                     diabetes_mult * hepatitis_mult * sex_mult * race_mult)
+                     diabetes_mult * hepatitis_mult * hpv_mult *
+                     h_pylori_mult * ibd_mult * radiation_mult *
+                     immunosupp_mult * precancer_mult * occup_mult *
+                     uv_mult * sex_mult * race_mult)
         
         # Add some random noise
         noise = np.random.normal(1.0, 0.1, len(age))
@@ -237,19 +302,7 @@ class CancerRiskModel:
         """Predict cancer risk for a patient.
         
         Args:
-            patient_data (dict): Dictionary with patient information:
-                - age (int): Patient age
-                - sex (str): 'male' or 'female'
-                - race (str): 'white', 'black', 'hispanic', 'aian', 'aapi'
-                - smoking_status (str): 'never', 'former', 'current'
-                - pack_years (float): Pack-years of smoking (0 if never smoked)
-                - bmi_category (str): 'normal', 'overweight', 'obese', 'severely-obese'
-                - alcohol_consumption (str): 'none', 'light', 'moderate', 'heavy'
-                - physical_activity (str): 'sedentary', 'moderate', 'active'
-                - diet_quality (str): 'poor', 'average', 'healthy'
-                - family_history (bool): True if family history of cancer
-                - diabetes (bool): True if has type 2 diabetes
-                - hepatitis (bool): True if has hepatitis B or C
+            patient_data (dict): Dictionary with patient information (see features list)
         
         Returns:
             dict: Prediction results with risk probabilities and explanations
@@ -275,9 +328,17 @@ class CancerRiskModel:
             'alcohol_consumption': alcohol_map[patient_data['alcohol_consumption']],
             'physical_activity': activity_map[patient_data['physical_activity']],
             'diet_quality': diet_map[patient_data['diet_quality']],
-            'family_history': int(patient_data['family_history']),
-            'diabetes': int(patient_data['diabetes']),
-            'hepatitis': int(patient_data['hepatitis'])
+            'family_history': int(patient_data.get('family_history', False)),
+            'diabetes': int(patient_data.get('diabetes', False)),
+            'hepatitis': int(patient_data.get('hepatitis', False)),
+            'hpv': int(patient_data.get('hpv', False)),
+            'h_pylori': int(patient_data.get('h_pylori', False)),
+            'ibd': int(patient_data.get('ibd', False)),
+            'radiation_history': int(patient_data.get('radiation_history', False)),
+            'immunosuppression': int(patient_data.get('immunosuppression', False)),
+            'precancerous_lesions': int(patient_data.get('precancerous_lesions', False)),
+            'occupational_exposure': int(patient_data.get('occupational_exposure', False)),
+            'uv_exposure': int(patient_data.get('uv_exposure', False))
         }])
         
         # Scale features
@@ -317,66 +378,122 @@ class CancerRiskModel:
         risk_factors = []
         
         # Analyze each risk factor
-        if patient_data['smoking_status'] == 'current':
+        if patient_data.get('smoking_status') == 'current':
             risk_factors.append({
                 'factor': 'Current smoking',
                 'impact': 'high',
                 'detail': f"{patient_data.get('pack_years', 0):.0f} pack-years. Smoking causes 19% of all cancers (ACS 2026)."
             })
-        elif patient_data['smoking_status'] == 'former':
+        elif patient_data.get('smoking_status') == 'former':
             risk_factors.append({
                 'factor': 'Former smoking',
                 'impact': 'moderate',
                 'detail': f"{patient_data.get('pack_years', 0):.0f} pack-years. Risk decreases after quitting but remains elevated."
             })
         
-        if patient_data['bmi_category'] in ['obese', 'severely-obese']:
+        if patient_data.get('bmi_category') in ['obese', 'severely-obese']:
             risk_factors.append({
                 'factor': 'Excess body weight',
-                'impact': 'high' if patient_data['bmi_category'] == 'severely-obese' else 'moderate',
+                'impact': 'high' if patient_data.get('bmi_category') == 'severely-obese' else 'moderate',
                 'detail': 'Excess body weight is attributable to 8% of cancer cases (ACS 2026).'
             })
         
-        if patient_data['alcohol_consumption'] in ['moderate', 'heavy']:
+        if patient_data.get('alcohol_consumption') in ['moderate', 'heavy']:
             risk_factors.append({
                 'factor': 'Alcohol consumption',
-                'impact': 'high' if patient_data['alcohol_consumption'] == 'heavy' else 'moderate',
+                'impact': 'high' if patient_data.get('alcohol_consumption') == 'heavy' else 'moderate',
                 'detail': 'Alcohol consumption is attributable to 5% of cancer cases (ACS 2026).'
             })
         
-        if patient_data['physical_activity'] == 'sedentary':
+        if patient_data.get('physical_activity') == 'sedentary':
             risk_factors.append({
                 'factor': 'Physical inactivity',
                 'impact': 'moderate',
                 'detail': 'Regular physical activity reduces risk for multiple cancer types.'
             })
         
-        if patient_data['diet_quality'] == 'poor':
+        if patient_data.get('diet_quality') == 'poor':
             risk_factors.append({
                 'factor': 'Poor diet quality',
                 'impact': 'moderate',
                 'detail': 'High red/processed meat intake and low fruit/vegetable consumption increase risk.'
             })
         
-        if patient_data['family_history']:
+        if patient_data.get('family_history'):
             risk_factors.append({
                 'factor': 'Family history of cancer',
                 'impact': 'high',
-                'detail': 'First-degree relatives with cancer significantly increase risk.'
+                'detail': 'First-degree relatives with cancer significantly increase risk (1.5-2x).'
             })
         
-        if patient_data['diabetes']:
+        if patient_data.get('diabetes'):
             risk_factors.append({
                 'factor': 'Type 2 diabetes',
                 'impact': 'moderate',
                 'detail': 'Diabetes increases risk for pancreatic, liver, colorectal, and uterine cancers.'
             })
         
-        if patient_data['hepatitis']:
+        if patient_data.get('hepatitis'):
             risk_factors.append({
                 'factor': 'Hepatitis B or C infection',
                 'impact': 'high',
                 'detail': '~75% of liver cancers are attributable to HBV/HCV infection (ACS 2026).'
+            })
+        
+        if patient_data.get('hpv'):
+            risk_factors.append({
+                'factor': 'HPV infection',
+                'impact': 'high',
+                'detail': 'HPV causes cervical, oropharyngeal, and anal cancers. Vaccination recommended.'
+            })
+        
+        if patient_data.get('h_pylori'):
+            risk_factors.append({
+                'factor': 'H. pylori infection',
+                'impact': 'high',
+                'detail': 'H. pylori increases gastric cancer risk 2-6x. Treatment available.'
+            })
+        
+        if patient_data.get('ibd'):
+            risk_factors.append({
+                'factor': 'Inflammatory bowel disease',
+                'impact': 'high',
+                'detail': 'IBD increases colorectal cancer risk 2-3x. Regular screening essential.'
+            })
+        
+        if patient_data.get('radiation_history'):
+            risk_factors.append({
+                'factor': 'Prior radiation therapy',
+                'impact': 'high',
+                'detail': 'Radiation therapy increases risk for leukemia, thyroid, and breast cancer.'
+            })
+        
+        if patient_data.get('immunosuppression'):
+            risk_factors.append({
+                'factor': 'Immunosuppression',
+                'impact': 'high',
+                'detail': 'Immunosuppressive medications increase lymphoma and skin cancer risk.'
+            })
+        
+        if patient_data.get('precancerous_lesions'):
+            risk_factors.append({
+                'factor': 'History of precancerous lesions',
+                'impact': 'high',
+                'detail': 'Precancerous lesions (polyps, dysplasia) indicate 5-20x increased risk.'
+            })
+        
+        if patient_data.get('occupational_exposure'):
+            risk_factors.append({
+                'factor': 'Occupational chemical exposure',
+                'impact': 'moderate',
+                'detail': 'Exposure to asbestos, benzene, or other carcinogens increases risk.'
+            })
+        
+        if patient_data.get('uv_exposure'):
+            risk_factors.append({
+                'factor': 'High UV exposure history',
+                'impact': 'moderate',
+                'detail': 'Chronic sun exposure increases melanoma and non-melanoma skin cancer risk.'
             })
         
         # Sort by impact
@@ -391,15 +508,15 @@ def initCancerRisk():
     CancerRiskModel.get_instance()
 
 
-def test_cancer_risk_model():
+def testCancerRisk():
     """Test the cancer risk model with sample patient data."""
     
     print("\n" + "="*70)
-    print("CANCER RISK PREDICTION MODEL TEST")
+    print("CANCER RISK PREDICTION MODEL TEST - ENHANCED VERSION")
     print("Based on ACS Cancer Facts & Figures 2026")
     print("="*70)
     
-    # Sample patient: 60-year-old male, former smoker, overweight
+    # Sample patient with multiple risk factors
     print("\nStep 1: Define patient data for prediction")
     patient = {
         'age': 60,
@@ -413,7 +530,15 @@ def test_cancer_risk_model():
         'diet_quality': 'average',
         'family_history': True,
         'diabetes': False,
-        'hepatitis': False
+        'hepatitis': False,
+        'hpv': False,
+        'h_pylori': True,
+        'ibd': False,
+        'radiation_history': False,
+        'immunosuppression': False,
+        'precancerous_lesions': True,
+        'occupational_exposure': False,
+        'uv_exposure': True
     }
     
     for key, value in patient.items():
@@ -440,13 +565,13 @@ def test_cancer_risk_model():
         print(f"      {factor['detail']}")
     
     # Feature importances
-    print("\nStep 5: Feature importance analysis")
+    print("\nStep 5: Feature importance analysis (top 10)")
     importances = model.feature_importances()
-    for feature, importance in sorted(importances.items(), key=lambda x: x[1], reverse=True)[:5]:
-        print(f"  {feature:25s} {importance:.2%}")
+    for feature, importance in sorted(importances.items(), key=lambda x: x[1], reverse=True)[:10]:
+        print(f"  {feature:30s} {importance:.2%}")
     
     print("\n" + "="*70 + "\n")
 
 
 if __name__ == "__main__":
-    test_cancer_risk_model()
+    testCancerRisk()
