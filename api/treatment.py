@@ -267,3 +267,4 @@ def cancer_risk_analysis():
         profile.setdefault(flag, False)
 
     return jsonify({'analysis': _gemini_cancer_analysis(profile)})
+

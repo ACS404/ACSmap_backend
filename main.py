@@ -26,13 +26,18 @@ from api.classroom_api import classroom_api
 from api.data_export_import_api import data_export_import_api
 from hacks.joke import joke_api  # Import the joke API blueprint
 from api.post import post_api  # Import the social media post API
-from model.treatment import Treatment, TreatmentLog   # add near other model imports
+  # add near other model imports
 from api.treatment import treatment_api                 # add near blueprint registrations
 
+from api.cancer_risk import cancer_risk_api
+     
+     
 #from api.announcement import announcement_api ##temporary revert
 
 # database Initialization functions
 from model.user import User, initUsers
+from model.cancer_risk import initCancerRisk
+from model.treatment import Treatment, TreatmentLog 
 from model.user import Section;
 from model.github import GitHubUser
 from model.feedback import Feedback
@@ -75,6 +80,7 @@ app.register_blueprint(pfp_api)
 app.register_blueprint(groq_api)
 app.register_blueprint(gemini_api)
 app.register_blueprint(microblog_api)
+app.register_blueprint(cancer_risk_api)
 
 app.register_blueprint(analytics_api)
 app.register_blueprint(student_api)
@@ -327,6 +333,8 @@ def generate_data():
     initMicroblogs()
     initPersonas()
     initPersonaUsers()
+    initCancerRisk()
+    
 
 # Register the custom command group with the Flask application
 app.cli.add_command(custom_cli)
