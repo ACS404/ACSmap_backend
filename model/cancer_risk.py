@@ -34,6 +34,23 @@ class CancerRiskModel:
         'pancreatic': {'label': 'Pancreatic',            'sex': None},
     }
 
+    # Baseline US lifetime incidence rates (%) — ACS Cancer Facts & Figures 2026
+    # Probability an average-risk person develops this cancer over their lifetime
+    BASELINE_LIFETIME_RISK = {
+        'lung':       {'male': 6.5,  'female': 5.8,  'overall': 6.1},
+        'colorectal': {'male': 4.5,  'female': 3.8,  'overall': 4.1},
+        'breast':     {'male': None, 'female': 13.0, 'overall': 13.0},
+        'prostate':   {'male': 12.5, 'female': None, 'overall': 12.5},
+        'melanoma':   {'male': 3.5,  'female': 2.3,  'overall': 2.8},
+        'liver':      {'male': 1.3,  'female': 0.6,  'overall': 0.9},
+        'cervical':   {'male': None, 'female': 0.7,  'overall': 0.7},
+        'stomach':    {'male': 1.1,  'female': 0.6,  'overall': 0.8},
+        'bladder':    {'male': 3.8,  'female': 1.2,  'overall': 2.4},
+        'lymphoma':   {'male': 2.3,  'female': 1.9,  'overall': 2.1},
+        'leukemia':   {'male': 1.8,  'female': 1.2,  'overall': 1.5},
+        'pancreatic': {'male': 1.8,  'female': 1.6,  'overall': 1.7},
+    }
+
     def __init__(self):
         self.logreg_model = None
         self.rf_model = None
@@ -208,11 +225,17 @@ class CancerRiskModel:
         low_risk_prob  = (logreg_proba[0] + rf_proba[0]) / 2
         high_risk_prob = (logreg_proba[1] + rf_proba[1]) / 2
 
+        # Compute an interpretable overall relative risk multiplier
+        # Population baseline for high-risk category is 25th percentile by design (75% threshold)
+        # RR = patient's high-risk probability / population average high-risk rate (0.25)
+        overall_rr = round(high_risk_prob / 0.25, 2)
+
         return {
             'low_risk_probability':  float(low_risk_prob),
             'high_risk_probability': float(high_risk_prob),
             'risk_category':         'high' if high_risk_prob > 0.5 else 'low',
-            'model_confidence':      float(max(low_risk_prob, high_risk_prob))
+            'model_confidence':      float(max(low_risk_prob, high_risk_prob)),
+            'overall_relative_risk': float(overall_rr),
         }
 
     def feature_importances(self):
@@ -247,6 +270,7 @@ class CancerRiskModel:
                     'label': meta['label'],
                     'applicable': False,
                     'relative_risk': None,
+                    'lifetime_risk_pct': None,
                     'risk_level': 'n/a',
                     'key_factors': [],
                     'note': f'Not applicable based on biological sex.'
@@ -254,6 +278,14 @@ class CancerRiskModel:
                 continue
 
             rr, factors, note = self._compute_type_risk(ct, patient_data)
+
+            # Compute lifetime risk % from baseline × relative risk
+            sex = patient_data.get('sex', 'overall')
+            baselines = self.BASELINE_LIFETIME_RISK.get(ct, {})
+            baseline = baselines.get(sex) or baselines.get('overall') or 1.0
+            raw_lifetime = baseline * rr
+            # Cap at 80% — no single risk factor combination should claim certainty
+            lifetime_risk_pct = round(min(raw_lifetime, 80.0), 1)
 
             if rr < 1.5:
                 level = 'low'
@@ -266,6 +298,8 @@ class CancerRiskModel:
                 'label': meta['label'],
                 'applicable': True,
                 'relative_risk': round(rr, 2),
+                'lifetime_risk_pct': lifetime_risk_pct,
+                'baseline_risk_pct': baseline,
                 'risk_level': level,
                 'key_factors': factors,
                 'note': note
@@ -562,3 +596,4 @@ def testCancerRisk():
 
 if __name__ == "__main__":
     testCancerRisk()
+    
