@@ -56,6 +56,11 @@ from hacks.jokes import initJokes
 # from gemini API
 from api.acs_chat_api import acs_chat_api
 
+# from Titanic model and API
+from api.titanic import titanic_api
+from model.titanic import initTitanic
+initTitanic()
+
 # server only Views
 
 import os
@@ -95,6 +100,8 @@ app.register_blueprint(post_api)  # Register the social media post API
 app.register_blueprint(treatment_api)
 # app.register_blueprint(acs_chat_api)
 app.register_blueprint(acs_chat_api)
+# app.regist_blueprint(titanic_api)
+app.register_blueprint(titanic_api)
 
 # Jokes file initialization
 with app.app_context():
