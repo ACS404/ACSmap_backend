@@ -42,7 +42,8 @@ cors = CORS(
        'http://localhost:4599/ACSmap_frontend',
        'https://acs404.github.io',
        'https://open-coding-society.github.io',
-       'https://pages.opencodingsociety.com',
+       'https://pages.opencodingsociety.com'
+       'https://cancermap.opencodingsociety.com',
    ],
    methods=["GET", "POST", "PUT", "OPTIONS", "DELETE"]
 )
