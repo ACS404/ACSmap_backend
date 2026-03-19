@@ -1,59 +1,42 @@
 from flask import Blueprint, request, jsonify
-from flask_restful import Api, Resource
 import google.generativeai as genai
-from __init__ import app
 import os
 
 acs_chat_api = Blueprint('acs_chat_api', __name__, url_prefix='/api')
-api = Api(acs_chat_api)
 
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
 
-class ACSChatAPI(Resource):
-    def options(self):
-        return {}, 200
+SYSTEM_PROMPT = """You are a data-driven cancer risk assistant for the American Cancer Society (ACS), powered by ACS Cancer Facts & Figures 2026.
 
-    def post(self):
-        try:
-            data = request.get_json()
+CORE RULE — answer the specific question asked. Do NOT default to a generic description of the cancer type's symptoms and treatments unless that is literally what was asked.
 
-            if not data or 'message' not in data or 'type' not in data:
-                return {"error": "Missing required fields: type and message"}, 400
+HOW TO ANSWER:
+- Lead with a direct answer to the exact question.
+- Back it up with specific numbers: relative risk multipliers, lifetime risk percentages, incidence rates, survival rates, or study findings. Use real ACS/NCI epidemiological data.
+- If the message includes a user profile (age, smoking status, family history, BMI, prediction results, etc.), reference those specific details in your answer. Make the answer feel like it was written for that exact person, not a generic patient.
+- If a relative risk or prediction result is included in the context, cite it directly (e.g. "Your model shows a 4.1× lung cancer RR — here's what drives that…").
+- Do NOT pad the answer with a general overview of symptoms and treatment options unless asked.
+- Do NOT end every response with a boilerplate "learn more at cancer.org" line — only include it when it's genuinely useful.
+- Keep answers under 180 words. Be specific and direct, not reassuring and vague.
+- Never provide a personal medical diagnosis. If the question is about a personal decision, give the data and then recommend a doctor.
+"""
 
-            message = data['message']
-            msg_type = data['type']
+@acs_chat_api.route('/acs-chat', methods=['POST'])
+def acs_chat():
+    data = request.get_json()
+    if not data or 'message' not in data:
+        return jsonify({'error': 'Missing message field'}), 400
 
-            if not GEMINI_API_KEY:
-                return {"error": "Gemini API key not configured"}, 500
+    message = data.get('message', '').strip()
+    if not message:
+        return jsonify({'error': 'Message cannot be empty'}), 400
 
-            if msg_type == 'hint':
-                prompt = f"""You are a helpful assistant for the American Cancer Society body map tool.
-A user is asking about cancer. Give them a SHORT helpful hint (2-3 sentences max) — 
-not the full answer. Guide them toward learning more without overwhelming them.
-Focus on symptoms, risk factors, or early detection tips.
-Do NOT provide medical diagnoses or treatment advice.
-Question: {message}"""
-            else:
-                prompt = f"""You are a knowledgeable, compassionate assistant for the American Cancer Society.
-Answer this question about cancer clearly and accurately in plain English.
-Include: what it is, key warning signs, main risk factors, and where to learn more (cancer.org).
-Keep it under 150 words. Do NOT provide medical diagnoses or personalized treatment advice.
-Always encourage consulting a doctor for personal health concerns.
-Question: {message}"""
-
-            model = genai.GenerativeModel('gemini-2.5-flash-lite')
-            response = model.generate_content(prompt)
-
-            return {
-                "success": True,
-                "type": msg_type,
-                "question": message,
-                "answer": response.text
-            }, 200
-
-        except Exception as e:
-            return {"error": "Internal server error", "details": str(e)}, 500
-
-api.add_resource(ACSChatAPI, '/acs-chat')
+    try:
+        model = genai.GenerativeModel(
+            model_name='gemini-2.5-flash-lite',
+            system_instruction=SYSTEM_PROMPT
+        )
+        response = model.generate_content(message)
+        return jsonify({'answer': response.text})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
