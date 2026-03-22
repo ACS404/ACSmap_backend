@@ -1,39 +1,20 @@
-# Pin to bookworm (Debian 12 stable) to avoid trixie proxy issues
-FROM python:3.12-slim-bookworm
+  FROM docker.io/python:3.11
 
-WORKDIR /app
+  WORKDIR /
 
-# Force bookworm sources before any apt calls
-RUN rm -f /etc/apt/sources.list.d/* && \
-    echo "deb http://deb.debian.org/debian bookworm main" > /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian-security bookworm-security main" >> /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian bookworm-updates main" >> /etc/apt/sources.list
+  # --- [Install python and pip] ---
+  RUN apt-get update && apt-get upgrade -y && \
+      apt-get install -y python3 python3-pip git
+  COPY . /
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    nodejs \
-    npm && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+  RUN pip install --no-cache-dir -r requirements.txt
+  RUN pip install gunicorn
 
-COPY . /app
+  ENV GUNICORN_CMD_ARGS="--workers=1 --bind=0.0.0.0:8009"
 
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install gunicorn
+  EXPOSE 8009
 
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app && \
-    chmod -R 755 /app && \
-    chmod -R 555 /app/model && \
-    chmod -R 555 /app/api && \
-    chmod -R 755 /app/instance && \
-    chmod 700 /proc 2>/dev/null || true
+  # Define environment variable
+  ENV FLASK_ENV=production
 
-USER appuser
-
-ENV FLASK_ENV=production \
-    GUNICORN_CMD_ARGS="--workers=5 --threads=2 --bind=0.0.0.0:8009 --timeout=30 --access-logfile -"
-
-EXPOSE 8009
-
-CMD ["gunicorn", "main:app"]
+  CMD [ "gunicorn", "main:app" ]
