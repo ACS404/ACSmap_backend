@@ -56,6 +56,10 @@ from hacks.jokes import initJokes
 # from gemini API
 from api.acs_chat_api import acs_chat_api
 
+# from treatment notes model and API
+from api.treatment_notes_api import treatment_notes_api
+from model.treatment_notes import TreatmentNote
+
 # from Titanic model and API
 from api.titanic import titanic_api
 from model.titanic import initTitanic
@@ -102,6 +106,8 @@ app.register_blueprint(treatment_api)
 app.register_blueprint(acs_chat_api)
 # app.regist_blueprint(titanic_api)
 app.register_blueprint(titanic_api)
+# app.resist_blueprint(treatment_notes_api)
+app.register_blueprint(treatment_notes_api)
 
 # Jokes file initialization
 with app.app_context():
