@@ -5,7 +5,7 @@ from datetime import datetime
 from __init__ import app, db
 from api.authorize import token_required
 from model.user import User
-from model.github import GitHubUser
+from model.github import GitHubUser 
 import os
 
 user_api = Blueprint('user_api', __name__,
@@ -20,13 +20,8 @@ class UserAPI:
         def get(self):
             ''' Retrieve the current user from the token_required authentication check '''
             current_user = g.current_user
-            ''' Return the current user as a json object with role information '''
-            user_data = current_user.read()
-            # Add role information to response
-            user_data['role'] = current_user.role
-            user_data['is_admin'] = current_user.is_admin()
-            user_data['is_teacher'] = current_user.is_teacher()
-            return jsonify(user_data)
+            ''' Return the current user as a json object '''
+            return jsonify(current_user.read())
     
     class _BULK(Resource):  # Users API operation for Create, Read, Update, Delete 
         def post(self):
@@ -97,10 +92,11 @@ class UserAPI:
                 return {'message': f'User ID is missing, or is less than 2 characters'}, 400
           
             # check if uid is a GitHub account
-            _, status = GitHubUser().get(uid)
+            print(f"🔍 Checking GitHub for user: {uid}")
+            result, status = GitHubUser().get(uid)
+            print(f"📊 GitHub API returned: status={status}, result={result}")
             if status != 200:
                 return {'message': f'User ID {uid} not a valid GitHub account' }, 404
-            
             ''' User object creation '''
             #1: Setup minimal User object using __init__ method
             password = body.get('password')
@@ -166,10 +162,6 @@ class UserAPI:
             Retrieve all users.
 
             Retrieves a list of all users in the database.
-            
-            Query Parameters:
-                page (int): Page number for pagination (starts at 1)
-                per_page (int): Number of users per page (default: 50, max: 200)
 
             Returns:
                 JSON response with a list of user dictionaries.
@@ -177,29 +169,13 @@ class UserAPI:
             # retrieve the current user from the token_required authentication check  
             current_user = g.current_user
             
-            # Get query parameters for pagination
-            page = request.args.get('page', type=int)
-            per_page = min(request.args.get('per_page', 50, type=int), 200)
-            
             """ User SQLAlchemy query returning list of all users """
-            if page:
-                # Paginated query
-                pagination = User.query.paginate(page=page, per_page=per_page, error_out=False)
-                users = pagination.items
-                has_next = pagination.has_next
-                has_prev = pagination.has_prev
-                total = pagination.total
-            else:
-                users = User.query.all() # extract all users from the database
-                has_next = False
-                has_prev = False
-                total = len(users)
+            users = User.query.all() # extract all users from the database
              
             # prepare a json list of user dictionaries
             json_ready = []  
             for user in users:
                 user_data = user.read()
-                # Add access control
                 if current_user.role == 'Admin' or current_user.id == user.id:
                     user_data['access'] = ['rw'] # read-write access control 
                 else:
@@ -207,52 +183,29 @@ class UserAPI:
                 json_ready.append(user_data)
             
             # return response, a list of user dictionaries in JSON format
-            if page:
-                return jsonify({
-                    'users': json_ready,
-                    'pagination': {
-                        'page': page,
-                        'per_page': per_page,
-                        'total': total,
-                        'has_next': has_next,
-                        'has_prev': has_prev
-                    }
-                })
-            else:
-                return jsonify(json_ready)
+            return jsonify(json_ready)
         
         @token_required()
         def put(self):
-            """
-            Update user details.
-
-            Retrieves the current user from the token_required authentication check and updates the user details based on the JSON body of the request.
-
-            Returns:
-                JSON response with the updated user details or an error message.
-            """
-            
-            # Retrieve the current user from the token_required authentication check
             current_user = g.current_user
-            # Read data from the JSON body of the request
             body = request.get_json()
 
             ''' Admin-specific update handling '''
             if current_user.role == 'Admin':
                 uid = body.get('uid')
-                # Admin is updating themself
                 if uid is None or uid == current_user.uid:
                     user = current_user 
-                else: # Admin is updating another user
-                    """ User SQLAlchemy query returning a single user """
+                else:
                     user = User.query.filter_by(_uid=uid).first()
                     if user is None:
                         return {'message': f'User {uid} not found'}, 404
             else:
-                # Non-admin can only update themselves
+                # Non-admin trying to update someone else
+                if body.get('uid') and body.get('uid') != current_user.uid:
+                    return {'message': 'Permission denied'}, 403
                 user = current_user
-                
-            # Accounts are desired to be GitHub accounts, change must be validated 
+            
+            # ✅ ONLY validate GitHub if the UID is ACTUALLY CHANGING
             if body.get('uid') and body.get('uid') != user._uid:
                 _, status = GitHubUser().get(body.get('uid'))
                 if status != 200:
@@ -264,7 +217,7 @@ class UserAPI:
             # return response, the updated user details as a JSON object
             return jsonify(user.read())
         
-        @token_required("Admin")
+        @token_required(["Admin"])
         def delete(self):
             """
             Delete a user.
@@ -362,6 +315,9 @@ class UserAPI:
     
             return {'message': f'Sections {sections} deleted successfully'}, 200
     class _Security(Resource):
+        def options(self):
+            return '', 200
+    
         def post(self):
             try:
                 body = request.get_json()
@@ -371,23 +327,19 @@ class UserAPI:
                         "data": None,
                         "error": "Bad request"
                     }, 400
-                ''' Get Data '''
+                
                 uid = body.get('uid')
                 if uid is None:
                     return {'message': f'User ID is missing'}, 401
                 password = body.get('password')
                 if not password:
                     return {'message': f'Password is missing'}, 401
-                            
-                ''' Find user '''
-    
+                
                 user = User.query.filter_by(_uid=uid).first()
                 
                 if user is None or not user.is_password(password):
-                    
                     return {'message': f"Invalid user id or password"}, 401
-                            
-                # Check if user is found
+                
                 if user:
                     try:
                         token = jwt.encode(
@@ -395,8 +347,23 @@ class UserAPI:
                             current_app.config["SECRET_KEY"],
                             algorithm="HS256"
                         )
-                        # Return JSON response with cookie
-                        is_production = os.environ.get('IS_PRODUCTION', 'false').lower() == 'true'
+                        
+                        # BETTER production detection using Origin header
+                        origin = request.headers.get('Origin', '')
+                        host = request.host
+                        
+                        # Check if request is from production frontend OR if host is production domain
+                        is_production = (
+                            'interacters.github.io' in origin or
+                            'opencodingsociety.com' in origin or
+                            'open-coding-society.github.io' in origin or
+                            'essaylab.opencodingsociety.com' in host
+                        )
+                        
+                        # DEBUG LOGGING
+                        print(f"🔧 Origin: {origin}")
+                        print(f"🔧 Host: {host}")
+                        print(f"🔧 Is Production: {is_production}")
                         
                         # Create JSON response
                         response_data = {
@@ -410,93 +377,110 @@ class UserAPI:
                         }
                         resp = jsonify(response_data)
                         
-                        # Set cookie
+                        # Set cookie based on environment
+                        cookie_name = current_app.config["JWT_TOKEN_NAME"]
+                        
                         if is_production:
+                            # PRODUCTION: Must use Secure=True with SameSite=None
                             resp.set_cookie(
-                                current_app.config["JWT_TOKEN_NAME"],
+                                cookie_name,
                                 token,
-                                max_age=43200,  # 12 hours in seconds
-                                secure=True,
+                                max_age=43200,
+                                secure=True,       # REQUIRED for SameSite=None
                                 httponly=True,
                                 path='/',
-                                samesite='None',
-                                domain='.opencodingsociety.com'
+                                samesite='None'    # REQUIRED for cross-origin
                             )
+                            print(f"🍪 PRODUCTION cookie set: Secure=True, SameSite=None")
                         else:
+                            # DEVELOPMENT: Localhost
                             resp.set_cookie(
-                                current_app.config["JWT_TOKEN_NAME"],
+                                cookie_name,
                                 token,
-                                max_age=43200,  # 12 hours in seconds
+                                max_age=43200,
                                 secure=False,
-                                httponly=False,  # Set to True for more security if JS access not needed
+                                httponly=True,
                                 path='/',
                                 samesite='Lax'
                             )
-                        print(f"Token set: {token}")
-                        return resp 
+                            print(f"🍪 DEVELOPMENT cookie set: Secure=False, SameSite=Lax")
+                        
+                        return resp
+                        
                     except Exception as e:
+                        print(f"❌ Error in login: {e}")
                         return {
-                                        "error": "Something went wrong",
-                                        "message": str(e)
-                                    }, 500
+                            "error": "Something went wrong",
+                            "message": str(e)
+                        }, 500
                 return {
-                                "message": "Error fetching auth token!",
-                                "data": None,
-                                "error": "Unauthorized"
-                            }, 404
+                    "message": "Error fetching auth token!",
+                    "data": None,
+                    "error": "Unauthorized"
+                }, 404
             except Exception as e:
-                 return {
-                                "message": "Something went wrong!",
-                                "error": str(e),
-                                "data": None
-                            }, 500
-                 
+                print(f"❌ Exception in login: {e}")
+                return {
+                    "message": "Something went wrong!",
+                    "error": str(e),
+                    "data": None
+                }, 500
+        
         @token_required()
         def delete(self):
-            ''' Invalidate the current user's token by setting its expiry to 0 '''
+            '''Invalidate the current user's token'''
             current_user = g.current_user
             try:
-                # Generate a token with practically 0 age
                 token = jwt.encode(
                     {"_uid": current_user._uid, 
-                     "exp": datetime.utcnow()},
+                    "exp": datetime.utcnow()},
                     current_app.config["SECRET_KEY"],
                     algorithm="HS256"
                 )
-                # You might want to log this action or take additional steps here
                 
-                # Prepare a response indicating the token has been invalidated
                 resp = Response("Token invalidated successfully")
-                is_production = os.environ.get('IS_PRODUCTION', 'false').lower() == 'true'
+                
+                # Same production detection
+                origin = request.headers.get('Origin', '')
+                host = request.host
+                
+                is_production = (
+                    'interacters.github.io' in origin or
+                    'opencodingsociety.com' in origin or
+                    'open-coding-society.github.io' in origin or
+                    'essaylab.opencodingsociety.com' in host
+                )
+                
+                cookie_name = current_app.config["JWT_TOKEN_NAME"]
+                
                 if is_production:
                     resp.set_cookie(
-                        current_app.config["JWT_TOKEN_NAME"],
+                        cookie_name,
                         token,
-                        max_age=0,  # Immediately expire the cookie
+                        max_age=0,
                         secure=True,
                         httponly=True,
                         path='/',
-                        samesite='None',
-                        domain='.opencodingsociety.com'
-                
+                        samesite='None'
                     )
                 else:
                     resp.set_cookie(
-                        current_app.config["JWT_TOKEN_NAME"],
+                        cookie_name,
                         token,
-                        max_age=0,  # Immediately expire the cookie
+                        max_age=0,
                         secure=False,
-                        httponly=False,  # Set to True for more security if JS access not needed
+                        httponly=True,
                         path='/',
                         samesite='Lax'
                     )
+                
+                print(f"🍪 Cookie deleted")
                 return resp
             except Exception as e:
                 return {
                     "message": "Failed to invalidate token",
                     "error": str(e)
-                }, 500
-
+                }, 500   
     class _GradeData(Resource):
         """
         Grade data API operations
@@ -723,6 +707,18 @@ class UserAPI:
 
             except Exception as e:
                 return {'message': f'Error creating guest user: {str(e)}'}, 500
+            
+    class _Debug(Resource):
+
+        def get(self):
+            return jsonify({
+                'cookies_received': dict(request.cookies),
+                'all_headers': dict(request.headers),
+                'origin': request.headers.get('Origin'),
+                'host': request.host,
+                'jwt_cookie_name_expected': current_app.config["JWT_TOKEN_NAME"],
+                'is_production': not (request.host.startswith('localhost') or request.host.startswith('127.0.0.1'))
+        })
 
     # building RESTapi endpoint
     api.add_resource(_ID, '/id')
@@ -734,6 +730,7 @@ class UserAPI:
     api.add_resource(_GradeData, '/grade_data')
     api.add_resource(_APExam, '/apexam')
     api.add_resource(_School, '/school')
+    api.add_resource(_Debug, '/debug')
     
     class _Class(Resource):
         """Manage the user's `class` list (e.g. CSSE, CSP, CSA).
