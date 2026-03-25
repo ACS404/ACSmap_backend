@@ -16,11 +16,13 @@ from api.python_exec_api import python_exec_api
 from api.javascript_exec_api import javascript_exec_api
 from api.section import section_api
 from api.persona_api import persona_api
+from api.skill_snapshot_api import skill_passport_api
 from api.pfp import pfp_api
 from api.analytics import analytics_api
 from api.student import student_api
 from api.groq_api import groq_api
 from api.gemini_api import gemini_api
+from api.ainpc_api import ainpc_api
 from api.microblog_api import microblog_api
 from api.classroom_api import classroom_api
 from api.data_export_import_api import data_export_import_api
@@ -32,6 +34,7 @@ from api.treatment import treatment_api                 # add near blueprint reg
 from api.cancer_risk import cancer_risk_api
      
      
+from api.snapshot_proxy import snapshot_proxy
 #from api.announcement import announcement_api ##temporary revert
 
 # database Initialization functions
@@ -48,6 +51,7 @@ from api.feedback_api import feedback_api
 from model.study import Study, initStudies
 from model.classroom import Classroom
 from model.persona import Persona, initPersonas, initPersonaUsers
+from model.skill_snapshot import SkillSnapshot
 from model.post import Post, init_posts
 from model.microblog import MicroBlog, Topic, initMicroblogs
 from hacks.jokes import initJokes 
@@ -85,11 +89,13 @@ app.register_blueprint(javascript_exec_api)
 app.register_blueprint(user_api)
 app.register_blueprint(section_api)
 app.register_blueprint(persona_api)
+app.register_blueprint(cancer_risk_api)
+app.register_blueprint(skill_passport_api)
 app.register_blueprint(pfp_api) 
 app.register_blueprint(groq_api)
 app.register_blueprint(gemini_api)
+app.register_blueprint(ainpc_api)
 app.register_blueprint(microblog_api)
-app.register_blueprint(cancer_risk_api)
 
 app.register_blueprint(analytics_api)
 app.register_blueprint(student_api)

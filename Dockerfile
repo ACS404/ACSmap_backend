@@ -1,20 +1,45 @@
-  FROM docker.io/python:3.11
+# Use official Python image as base image
+FROM python:3.12-slim
 
-  WORKDIR /
+# Set working directory
+WORKDIR /app
 
-  # --- [Install python and pip] ---
-  RUN apt-get update && apt-get upgrade -y && \
-      apt-get install -y python3 python3-pip git
-  COPY . /
+# Install system dependencies and clean up apt cache
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    nodejs \
+    npm && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-  RUN pip install --no-cache-dir -r requirements.txt
-  RUN pip install gunicorn
+# Copy application code into the container
+COPY . /app
 
-  ENV GUNICORN_CMD_ARGS="--workers=1 --bind=0.0.0.0:8009"
+# Upgrade pip and install dependencies
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install gunicorn
 
-  EXPOSE 8009
+# Create non-privileged user and set file permissions
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app && \
+    chmod -R 755 /app && \
+    # Make code directories read-only for appuser (prevent code modification)
+    chmod -R 555 /app/model && \
+    chmod -R 555 /app/api && \
+    # Keep /app/instance writable for database and uploads
+    chmod -R 755 /app/instance && \
+    # Restrict access to /proc to prevent reading parent process env vars
+    chmod 700 /proc 2>/dev/null || true
 
-  # Define environment variable
-  ENV FLASK_ENV=production
+# Switch to non-privileged user
+USER appuser
 
-  CMD [ "gunicorn", "main:app" ]
+# Set environment variables
+ENV FLASK_ENV=production \
+    GUNICORN_CMD_ARGS="--workers=5 --threads=2 --bind=0.0.0.0:8587 --timeout=30 --access-logfile -"
+
+# Expose application port
+EXPOSE 8009
+
+# Start Gunicorn server
+CMD ["gunicorn", "main:app"]
