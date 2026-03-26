@@ -1,175 +1,411 @@
 {% extends "layouts/base.html" %}
+{% set project = "User Management" %}
+
+{% block background %}{% endblock %}
+
+{% block style %}
+<style>
+    .um-page {
+        padding: 2.5rem 2rem 4rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Page header */
+    .um-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid var(--tan-light);
+    }
+
+    .um-header__left {}
+
+    .um-header__eyebrow {
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--rose);
+        margin-bottom: 4px;
+    }
+
+    .um-header__title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.4rem;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1;
+    }
+
+    .um-header__count {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    /* Table card */
+    .um-card {
+        background: var(--bg-1);
+        border: 1px solid var(--tan-light);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 30px rgba(61,44,36,0.07);
+    }
+
+    /* Override DataTables */
+    #userTable_wrapper {
+        padding: 1.25rem 1.5rem;
+    }
+
+    #userTable_filter label,
+    #userTable_length label {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    #userTable_filter input,
+    #userTable_length select {
+        background: var(--bg-0);
+        border: 1px solid var(--tan-light);
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        color: var(--text);
+        outline: none;
+    }
+
+    #userTable_filter input:focus { border-color: var(--rose-light); }
+
+    table#userTable {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100% !important;
+    }
+
+    table#userTable thead th {
+        background: var(--bg-2);
+        color: var(--text-muted);
+        font-size: 0.73rem;
+        font-weight: 500;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--tan-light);
+        white-space: nowrap;
+    }
+
+    table#userTable thead th:first-child { border-radius: 0; }
+
+    table#userTable tbody tr {
+        transition: background 0.15s;
+    }
+
+    table#userTable tbody tr:hover { background: var(--rose-pale); }
+
+    table#userTable tbody td {
+        padding: 13px 14px;
+        font-size: 0.84rem;
+        color: var(--text);
+        border-bottom: 1px solid rgba(196,168,130,0.12);
+        vertical-align: middle;
+    }
+
+    table#userTable tbody tr:last-child td { border-bottom: none; }
+
+    /* Role badges */
+    .role-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.73rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+    }
+
+    .role-badge--admin {
+        background: rgba(196,94,74,0.12);
+        color: var(--terracotta);
+        border: 1px solid rgba(196,94,74,0.2);
+    }
+
+    .role-badge--teacher {
+        background: rgba(138,170,140,0.15);
+        color: #5a8a5e;
+        border: 1px solid rgba(138,170,140,0.3);
+    }
+
+    .role-badge--user {
+        background: var(--bg-2);
+        color: var(--text-muted);
+        border: 1px solid var(--tan-light);
+    }
+
+    /* Profile pic */
+    .um-pfp {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--tan-light);
+    }
+
+    /* Kasm indicator */
+    .kasm-dot {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+    }
+
+    .kasm-dot::before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .kasm-dot--yes { color: #5a8a5e; }
+    .kasm-dot--yes::before { background: var(--sage); }
+    .kasm-dot--no  { color: var(--text-muted); }
+    .kasm-dot--no::before  { background: var(--tan-light); }
+
+    /* Action buttons */
+    .btn-edit {
+        font-size: 0.77rem;
+        font-weight: 500;
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--tan-light);
+        background: var(--bg-0);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+        margin-right: 4px;
+    }
+
+    .btn-edit:hover { border-color: var(--rose-light); color: var(--rose); background: var(--rose-pale); }
+
+    .btn-danger-sm {
+        font-size: 0.77rem;
+        font-weight: 500;
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(196,94,74,0.2);
+        background: rgba(196,94,74,0.07);
+        color: var(--terracotta);
+        cursor: pointer;
+        transition: all 0.15s;
+        margin-right: 4px;
+    }
+
+    .btn-danger-sm:hover { background: rgba(196,94,74,0.15); }
+
+    .btn-warn-sm {
+        font-size: 0.77rem;
+        font-weight: 500;
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(212,132,90,0.25);
+        background: rgba(212,132,90,0.08);
+        color: #c4703a;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-warn-sm:hover { background: rgba(212,132,90,0.18); }
+
+    /* DataTables pagination */
+    .dataTables_paginate .paginate_button {
+        font-size: 0.8rem !important;
+        border-radius: 8px !important;
+        color: var(--text-muted) !important;
+        border: none !important;
+        padding: 4px 10px !important;
+    }
+
+    .dataTables_paginate .paginate_button.current,
+    .dataTables_paginate .paginate_button.current:hover {
+        background: var(--rose) !important;
+        color: white !important;
+        border: none !important;
+    }
+
+    .dataTables_paginate .paginate_button:hover {
+        background: var(--rose-pale) !important;
+        color: var(--rose) !important;
+    }
+
+    .dataTables_info {
+        font-size: 0.8rem !important;
+        color: var(--text-muted) !important;
+    }
+
+    /* Loading shimmer for commits */
+    .commits-loading {
+        display: inline-block;
+        width: 50px;
+        height: 12px;
+        background: linear-gradient(90deg, var(--bg-2) 25%, var(--bg-3) 50%, var(--bg-2) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 6px;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* Dark mode */
+    body.dark-mode .um-card { background: #2e1e14; border-color: #4a3028; }
+    body.dark-mode table#userTable thead th { background: #3a2418; color: #c4a08a; border-color: #4a3028; }
+    body.dark-mode table#userTable tbody td { color: #f0e6dc; border-color: rgba(74,48,40,0.4); }
+    body.dark-mode table#userTable tbody tr:hover { background: rgba(224,122,106,0.07); }
+    body.dark-mode #userTable_filter input,
+    body.dark-mode #userTable_length select { background: #3a2418; border-color: #5a3828; color: #f0e6dc; }
+    body.dark-mode .um-header__title { color: #f0e6dc; }
+    body.dark-mode .btn-edit { background: #3a2418; border-color: #5a3828; color: #c4a08a; }
+    body.dark-mode .btn-edit:hover { border-color: var(--rose-light); color: var(--rose); background: rgba(224,122,106,0.1); }
+</style>
+{% endblock %}
 
 {% block body %}
+<div class="um-page">
 
-<div class="container mt-5">
-    <h1>User Management</h1>
+    <div class="um-header">
+        <div class="um-header__left">
+            <p class="um-header__eyebrow">Admin Panel</p>
+            <h1 class="um-header__title">User Management</h1>
+            <p class="um-header__count">Viewing all registered accounts</p>
+        </div>
+    </div>
 
-    <table class="table table-striped" id="userTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>UID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Profile Picture</th>
-                <th>Kasm Server Needed</th>
-                <th>Courses</th>
-                <th>Commits</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in user_data %}
-            {% if user.id == current_user.id or current_user.role == 'Admin' %}
-            <tr id="user-{{ user.id }}">
-                <td>{{ user.id }}</td>
-                <td>{{ user.uid }}</td>
-                <td>{{ user.name }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.role }}</td>
-                <td>
-                    {% if user.pfp %}
-                    <img src="{{ url_for('uploaded_file', filename=user.uid + '/' + user.pfp) }}" 
-                         alt="Profile Picture" 
-                         class="img-thumbnail" 
-                         style="width: 50px; height: 50px;">
-                    {% else %}
-                    <img src="{{ url_for('static', filename='assets/pythondb.png') }}" 
-                         alt="Default Profile Picture" 
-                         class="img-thumbnail" 
-                         style="width: 50px; height: 50px;">
-                    {% endif %}
-                </td>
-                <td id="kasm-{{ user.id }}">{{ user.kasm_server_needed }}</td>
-                <td>
-                    {% for section in user.sections %}
-                    {{ section.abbreviation }}{% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </td>
-                <td id="commits-{{ user.uid }}">Loading...</td>
-                <td>
-                    <button class="btn btn-primary edit-btn" data-id="{{ user.id }}">Edit</button>
-                    {% if current_user.role == 'Admin' %}
-                    <button class="btn btn-danger delete-btn" data-id="{{ user.id }}">Delete</button>
-                    <button class="btn btn-warning reset-password-btn" data-id="{{ user.id }}">Reset Password</button>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="um-card">
+        <table id="userTable" class="table" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>UID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Avatar</th>
+                    <th>Kasm</th>
+                    <th>Courses</th>
+                    <th>Commits</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_data %}
+                {% if user.id == current_user.id or current_user.role == 'Admin' %}
+                <tr id="user-{{ user.id }}">
+                    <td style="color:var(--text-muted); font-size:0.8rem">#{{ user.id }}</td>
+                    <td style="font-weight:500">{{ user.uid }}</td>
+                    <td>{{ user.name }}</td>
+                    <td style="color:var(--text-muted); font-size:0.82rem">{{ user.email }}</td>
+                    <td>
+                        {% if user.role == 'Admin' %}
+                        <span class="role-badge role-badge--admin">Admin</span>
+                        {% elif user.role == 'Teacher' %}
+                        <span class="role-badge role-badge--teacher">Teacher</span>
+                        {% else %}
+                        <span class="role-badge role-badge--user">User</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.pfp %}
+                        <img src="{{ url_for('uploaded_file', filename=user.uid + '/' + user.pfp) }}"
+                             alt="Avatar" class="um-pfp">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='assets/pythondb.png') }}"
+                             alt="Default Avatar" class="um-pfp">
+                        {% endif %}
+                    </td>
+                    <td id="kasm-{{ user.id }}">
+                        {% if user.kasm_server_needed %}
+                        <span class="kasm-dot kasm-dot--yes">Yes</span>
+                        {% else %}
+                        <span class="kasm-dot kasm-dot--no">No</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.82rem; color:var(--text-muted)">
+                        {% for section in user.sections %}
+                        {{ section.abbreviation }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td id="commits-{{ user.uid }}">
+                        <span class="commits-loading"></span>
+                    </td>
+                    <td>
+                        <button class="btn-edit edit-btn" data-id="{{ user.id }}">
+                            <i class="fas fa-pen fa-xs"></i> Edit
+                        </button>
+                        {% if current_user.role == 'Admin' %}
+                        <button class="btn-danger-sm delete-btn" data-id="{{ user.id }}">
+                            <i class="fas fa-trash fa-xs"></i> Delete
+                        </button>
+                        <button class="btn-warn-sm reset-password-btn" data-id="{{ user.id }}">
+                            <i class="fas fa-key fa-xs"></i> Reset
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    $(document).ready(function () {
-        // Initialize DataTables
-        const table =  $("#userTable").DataTable(); // repersents table
+$(document).ready(function () {
+    const table = $("#userTable").DataTable();
+    table.page.len(-1).draw();
 
-        table.page.len(-1).draw();  // shows all users and commits
-        // Function to fetch commits (DISABLED)
-        /*
-        async function fetchAdminData(userUid) {
-            const commitsElement = $(`#commits-${userUid}`);
+    // Clear shimmer loaders (commits disabled)
+    document.querySelectorAll("[id^='commits-']").forEach(el => {
+        el.innerHTML = '<span style="color:var(--text-muted); font-size:0.8rem">—</span>';
+    });
 
-            if (!commitsElement.length) return;
-
-            const today = new Date();
-            const startDate = new Date();
-            startDate.setDate(today.getDate() - 30);
-
-            const formattedStartDate = startDate.toISOString().split('T')[0];
-            const formattedEndDate = today.toISOString().split('T')[0];
-
-            try {
-                const response = await fetch(`/api/analytics/commits/${userUid}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ start_date: formattedStartDate, end_date: formattedEndDate })
-                });
-
-                if (!response.ok) throw new Error(`Error: ${response.statusText}`);
-
-                const data = await response.json();
-                commitsElement.text(data.commits?.total_commit_contributions || "0");
-
-            } catch (error) {
-                console.error("Error:", error);
-            }
-        }
-        */
-
-        // Batch processing with delay (DISABLED)
-        /*
-        async function processUsersWithDelay() {
-            const users = $("[id^='commits-']");
-            console.log(`Total users found: ${users.length}`);
-
-            for (let i = 0; i < users.length; i++) {
-                const userUid = users[i].id.split("-")[1];
-
-                await fetchAdminData(userUid);
-
-                if ((i + 1) % 15 === 0) {
-                    console.log(`Pausing for 5 seconds...`);
-                    await new Promise(resolve => setTimeout(resolve, 4000)); // tinker this however depending on rate limiting
-                } else {
-                    console.log(`Waiting for 2 seconds...`);
-                    await new Promise(resolve => setTimeout(resolve, 100));  // tinker this however depending on rate limiting
-                }
-            }
-
-            table.page.len(10).draw();  
-        }
-        */
-
-        // Start processing users with a delay (DISABLED)
-        // processUsersWithDelay();
-
-        // Handle delete action
-        document.querySelectorAll(".delete-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                const id = this.dataset.id;
-                fetch(`/users/delete/${id}`, {
-                    method: "DELETE",
-                    headers: { "Content-Type": "application/json" },
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message || "User deleted successfully.");
-                        location.reload();
-                    })
-                    .catch(error => {
-                        console.error("Error deleting user:", error);
-                        alert("Error deleting user.");
-                    });
-            });
-        });
-
-        // Handle reset password action
-        document.querySelectorAll(".reset-password-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                const id = this.dataset.id;
-                fetch(`/users/reset_password/${id}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message || "Password reset successfully.");
-                    })
-                    .catch(error => {
-                        console.error("Error resetting password:", error);
-                        alert("Error resetting password.");
-                    });
-            });
+    // Delete
+    document.querySelectorAll(".delete-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            if (!confirm("Delete this user?")) return;
+            const id = this.dataset.id;
+            fetch(`/users/delete/${id}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message || "User deleted.");
+                location.reload();
+            })
+            .catch(() => alert("Error deleting user."));
         });
     });
+
+    // Reset password
+    document.querySelectorAll(".reset-password-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const id = this.dataset.id;
+            fetch(`/users/reset_password/${id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(r => r.json())
+            .then(data => alert(data.message || "Password reset."))
+            .catch(() => alert("Error resetting password."));
+        });
+    });
+});
 </script>
-
-{% endblock %}
-
-{% block background %}
 {% endblock %}

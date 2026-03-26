@@ -1,42 +1,255 @@
 {% extends "layouts/base.html" %}
 {% set project = "Login" %}
 
-{% block body %}
-    <!-- Start of body content specific to page -->
-    <div class="px-5 py-5 mx-auto">
-        <div class="container py-4">
-            <header class="pb-3 mb-4 border-bottom border-primary text-light">
-                <span class="fs-4">Login Page</span>
-            </header>
-        </div>
-    
-        <div class="container py-4 text-light bg-primary">
-    
-            <div class="container bg-secondary py-4">
-                <div class="p-5 mb-4 bg-light text-dark rounded-3">
-                    <form name="f" action="{{ url_for('login') }}" method="POST">
-                        <table>
-                            {% if error %}
-                                <tr class="alert alert-error">
-                                    Invalid username and password.
-                                </tr>
-                            {% endif %}
-                            {% if logout %}
-                                <tr class="alert alert-success">
-                                    You have been logged out.
-                                </tr>
-                            {% endif %}
-                            <tr><th><label for="username">User ID</label></th></tr>
-                            <tr><td><input id='username' name="username" size="20" required></td></tr>
-                            <tr><th><label for="password">Password</label></th></tr>
-                            <tr><td><input type="password" id="password" name="password" size="20" required></td></tr>
-                            <!-- Hidden input for 'next' page, which is set on unauthorized redirects -->
-                            <input type="hidden" name="next" value="{{ next }}">
-                            <tr><th><input type="submit" value="Submit"></th></tr>
-                        </table>
-                    </form>
-                </div>
+{% block background %}{% endblock %}
 
+{% block style %}
+<style>
+    body {
+        background: var(--bg-0);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .login-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Decorative blobs */
+    .login-wrap::before {
+        content: '';
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(224,122,106,0.12) 0%, transparent 70%);
+        top: -100px;
+        right: -100px;
+        pointer-events: none;
+    }
+
+    .login-wrap::after {
+        content: '';
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(138,170,140,0.10) 0%, transparent 70%);
+        bottom: -80px;
+        left: -80px;
+        pointer-events: none;
+    }
+
+    .login-card {
+        background: var(--bg-1);
+        border: 1px solid var(--tan-light);
+        border-radius: 24px;
+        padding: 3rem 3.5rem;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 20px 60px rgba(61,44,36,0.10);
+        position: relative;
+        z-index: 1;
+        animation: riseUp 0.5s ease both;
+    }
+
+    @keyframes riseUp {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Accent bar at top */
+    .login-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 2rem; right: 2rem;
+        height: 3px;
+        background: linear-gradient(90deg, var(--rose), var(--sage));
+        border-radius: 0 0 4px 4px;
+    }
+
+    .login-eyebrow {
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--rose);
+        margin-bottom: 8px;
+    }
+
+    .login-headline {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.2rem;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.15;
+        margin-bottom: 0.3rem;
+    }
+
+    .login-sub {
+        font-size: 0.84rem;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+
+    /* Alerts */
+    .login-alert {
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .login-alert--error {
+        background: rgba(196,94,74,0.10);
+        border: 1px solid rgba(196,94,74,0.25);
+        color: var(--terracotta);
+    }
+
+    .login-alert--success {
+        background: rgba(138,170,140,0.12);
+        border: 1px solid rgba(138,170,140,0.3);
+        color: #5a8a5e;
+    }
+
+    /* Form fields */
+    .login-field {
+        margin-bottom: 1.25rem;
+    }
+
+    .login-label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    .login-input {
+        width: 100%;
+        padding: 11px 16px;
+        background: var(--bg-0);
+        border: 1.5px solid var(--tan-light);
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        color: var(--text);
+        outline: none;
+        transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    .login-input:focus {
+        border-color: var(--rose-light);
+        box-shadow: 0 0 0 3px rgba(224,122,106,0.12);
+    }
+
+    .login-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+    /* Submit */
+    .login-btn {
+        width: 100%;
+        padding: 12px;
+        background: var(--rose);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        margin-top: 0.5rem;
+        box-shadow: 0 4px 18px rgba(224,122,106,0.30);
+    }
+
+    .login-btn:hover {
+        background: var(--terracotta);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 22px rgba(224,122,106,0.38);
+    }
+
+    .login-btn:active { transform: translateY(0); }
+
+    /* Footer note */
+    .login-footer-note {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+    }
+
+    /* Dark mode adjustments */
+    body.dark-mode .login-card {
+        background: #2e1e14;
+        border-color: #4a3028;
+    }
+
+    body.dark-mode .login-headline { color: #f0e6dc; }
+
+    body.dark-mode .login-input {
+        background: #3a2418;
+        border-color: #5a3828;
+        color: #f0e6dc;
+    }
+
+    body.dark-mode .login-input:focus {
+        border-color: var(--rose-light);
+        box-shadow: 0 0 0 3px rgba(224,122,106,0.14);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="login-wrap">
+    <div class="login-card">
+        <p class="login-eyebrow">Welcome back</p>
+        <h1 class="login-headline">Sign In</h1>
+        <p class="login-sub">Enter your credentials to continue.</p>
+
+        {% if error %}
+        <div class="login-alert login-alert--error">
+            <i class="fas fa-exclamation-circle"></i>
+            Invalid username or password. Please try again.
         </div>
+        {% endif %}
+
+        {% if logout %}
+        <div class="login-alert login-alert--success">
+            <i class="fas fa-check-circle"></i>
+            You've been signed out successfully.
+        </div>
+        {% endif %}
+
+        <form name="f" action="{{ url_for('login') }}" method="POST">
+            <div class="login-field">
+                <label class="login-label" for="username">User ID</label>
+                <input class="login-input" id="username" name="username" type="text" placeholder="your-github-username" required>
+            </div>
+
+            <div class="login-field">
+                <label class="login-label" for="password">Password</label>
+                <input class="login-input" id="password" name="password" type="password" placeholder="••••••••" required>
+            </div>
+
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <button class="login-btn" type="submit">Sign In →</button>
+        </form>
+
+        <p class="login-footer-note">
+            Open Coding Society · Student Developer Platform
+        </p>
     </div>
+</div>
 {% endblock %}

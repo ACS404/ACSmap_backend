@@ -1,9 +1,4 @@
-<!-- Custom file for standardizing Project Data
-This HTML is setup as as a Jinja2 layout, coders use layouts for:
- ... standardization of style
- ... setting expectations for data
- ... code reuse
--->
+<!-- Jinja2 base layout — Open Coding Society -->
 <!DOCTYPE HTML>
 <html lang="en">
 
@@ -13,72 +8,440 @@ This HTML is setup as as a Jinja2 layout, coders use layouts for:
 {% set youtube = "https://www.youtube.com/@OpenCodingSociety" %}
 
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <!-- JQuery -->
-    <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
-    <!-- Bootstrap CSS -->
+    <!-- jQuery & DataTables -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-    <!-- Bootstrap JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
-    {% block head %}
-    {% endblock %}
-      
+    {% block head %}{% endblock %}
+
     <style>
-        .navbar {
-            position: static;
-            z-index: 9999;
+        :root {
+            --bg-0: #fdf6ee;
+            --bg-1: #fff9f3;
+            --bg-2: #f5ede3;
+            --bg-3: #ecddd0;
+            --rose: #e07a6a;
+            --rose-light: #f2b5ab;
+            --rose-pale: #fce9e6;
+            --terracotta: #c45e4a;
+            --terracotta-hover: #a84838;
+            --sage: #8aaa8c;
+            --sage-light: #b8ceb9;
+            --sage-pale: #eaf1ea;
+            --tan: #c4a882;
+            --tan-light: #e8d9c4;
+            --brown: #6b4c3b;
+            --text: #3d2c24;
+            --text-muted: #937468;
         }
-        #body_background {
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-0);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            min-height: 100vh;
+        }
+
+        /* Ambient background */
+        body::before {
+            content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 15% 10%, rgba(224,122,106,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 85% 85%, rgba(138,170,140,0.07) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
         }
+
+        /* ────────────────────────────────────────
+           NAVBAR
+        ──────────────────────────────────────── */
+        .ocs-nav {
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            height: 62px;
+            background: rgba(255, 249, 243, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--tan-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 1px 24px rgba(196,168,130,0.13);
+        }
+
+        /* Brand */
+        .ocs-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .ocs-brand img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .ocs-brand__name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: 0.01em;
+            line-height: 1;
+        }
+
+        .ocs-brand__name em {
+            font-style: normal;
+            color: var(--rose);
+        }
+
+        /* Center links */
+        .ocs-links {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            align-items: baseline;
+        }
+
+        .ocs-link {
+            font-size: 0.79rem;
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            transition: background 0.18s, color 0.18s;
+        }
+
+        .ocs-link:hover { background: var(--rose-pale); color: var(--rose); }
+
+        /* Dropdown */
+        .ocs-dd { position: relative; }
+
+        .ocs-dd__panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            background: var(--bg-1);
+            border: 1px solid var(--tan-light);
+            border-radius: 14px;
+            padding: 8px;
+            min-width: 190px;
+            box-shadow: 0 10px 36px rgba(61,44,36,0.11);
+            animation: fadeDown 0.15s ease;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .ocs-dd:hover .ocs-dd__panel { display: block; }
+
+        .ocs-dd__item {
+            display: block;
+            padding: 9px 14px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.14s;
+        }
+
+        .ocs-dd__item:hover { background: var(--rose-pale); color: var(--rose); }
+
+        /* Right controls */
+        .ocs-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ocs-search {
+            background: var(--bg-2);
+            border: 1px solid var(--tan-light);
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 0.81rem;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            width: 150px;
+            transition: border 0.2s ease, width 0.3s ease;
+        }
+
+        .ocs-search:focus { border-color: var(--rose-light); width: 190px; }
+        .ocs-search::placeholder { color: var(--text-muted); }
+
+        /* User pill */
+        .ocs-user { position: relative; }
+
+        .ocs-user__pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 14px;
+            background: var(--bg-2);
+            border: 1px solid var(--tan-light);
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            color: var(--text);
+            transition: all 0.18s;
+            user-select: none;
+        }
+
+        .ocs-user__pill:hover { background: var(--rose-pale); border-color: var(--rose-light); }
+
+        .ocs-user__pill .chevron { font-size: 0.65rem; color: var(--text-muted); }
+
+        .ocs-user__drop {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--bg-1);
+            border: 1px solid var(--tan-light);
+            border-radius: 14px;
+            padding: 8px;
+            min-width: 210px;
+            box-shadow: 0 10px 36px rgba(61,44,36,0.11);
+            animation: fadeDown 0.15s ease;
+        }
+
+        .ocs-user:hover .ocs-user__drop { display: block; }
+
+        .ocs-user__meta {
+            padding: 10px 14px 12px;
+            border-bottom: 1px solid var(--tan-light);
+            margin-bottom: 6px;
+        }
+
+        .ocs-user__meta p {
+            font-size: 0.79rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        .ocs-user__meta strong { color: var(--text); font-weight: 500; }
+
+        .ocs-user__out {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            font-size: 0.82rem;
+            color: var(--terracotta);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.14s;
+        }
+
+        .ocs-user__out:hover { background: var(--rose-pale); }
+
+        .ocs-login-btn {
+            font-size: 0.81rem;
+            font-weight: 500;
+            color: white;
+            text-decoration: none;
+            background: var(--rose);
+            padding: 7px 18px;
+            border-radius: 30px;
+            transition: background 0.18s;
+        }
+
+        .ocs-login-btn:hover { background: var(--terracotta); color: white; }
+
+        /* Dark toggle */
+        .dark-toggle { display: flex; align-items: center; }
+        .dark-toggle input { cursor: pointer; accent-color: var(--sage); width: 16px; height: 16px; }
+
+        /* ── DARK MODE ── */
+        body.dark-mode {
+            background-color: #251a14;
+            color: #f0e6dc;
+        }
+
+        body.dark-mode .ocs-nav {
+            background: rgba(42,28,20,0.94);
+            border-color: #4a3028;
+        }
+
+        body.dark-mode .ocs-brand__name { color: #f0e6dc; }
+
+        body.dark-mode .ocs-search {
+            background: #3a2418;
+            border-color: #5a3828;
+            color: #f0e6dc;
+        }
+
+        body.dark-mode .ocs-user__pill {
+            background: #3a2418;
+            border-color: #5a3828;
+            color: #f0e6dc;
+        }
+
+        body.dark-mode .ocs-dd__panel,
+        body.dark-mode .ocs-user__drop {
+            background: #2e1e14;
+            border-color: #4a3028;
+        }
+
+        body.dark-mode .ocs-dd__item,
+        body.dark-mode .ocs-user__meta p { color: #c4a08a; }
+
+        body.dark-mode .ocs-user__meta { border-color: #4a3028; }
+
+        body.dark-mode .ocs-user__meta strong { color: #f0e6dc; }
     </style>
-    {% block style %}
-    {% endblock %}
 
-    <title>{{ basename }} | {{ project }} </title>
-
+    {% block style %}{% endblock %}
+    <title>{{ basename }} | {{ project }}</title>
 </head>
 
 <body>
-    <div id="body_background"></div>
 
-    {% include "layouts/navbar.html" %}
+    <nav class="ocs-nav">
+        <!-- Brand -->
+        <a class="ocs-brand" href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='assets/ncs_logo.png') }}" alt="OCS Logo">
+            <span class="ocs-brand__name">Open <em>Coding</em></span>
+        </a>
 
-    {% block body %}
+        <!-- Center nav -->
+        <div class="ocs-links">
+            <a class="ocs-link" href="{{ url_for('index') }}">Home</a>
+
+            <div class="ocs-dd">
+                <a class="ocs-link" href="#">Data ▾</a>
+                <div class="ocs-dd__panel">
+                    <a class="ocs-dd__item" href="{{ url_for('u2table') }}">
+                        <i class="fas fa-users fa-xs me-2" style="color:var(--rose)"></i>User Management
+                    </a>
+                    <a class="ocs-dd__item" href="{{ url_for('kasm_users') }}">
+                        <i class="fas fa-server fa-xs me-2" style="color:var(--sage)"></i>Kasm Report
+                    </a>
+                    <a class="ocs-dd__item" href="{{ url_for('sections') }}">
+                        <i class="fas fa-layer-group fa-xs me-2" style="color:var(--tan)"></i>Sections
+                    </a>
+                    <a class="ocs-dd__item" href="{{ url_for('persona') }}">
+                        <i class="fas fa-mask fa-xs me-2" style="color:var(--brown)"></i>Personas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right side -->
+        <div class="ocs-right">
+            <input id="search" class="ocs-search" type="search" placeholder="Search…">
+
+            {% if current_user.is_authenticated %}
+            <div class="ocs-user">
+                <div class="ocs-user__pill">
+                    <i class="fas fa-user-circle" style="color:var(--rose)"></i>
+                    {{ current_user.name }}
+                    <span class="chevron">▾</span>
+                </div>
+                <div class="ocs-user__drop">
+                    <div class="ocs-user__meta">
+                        <p><strong>ID:</strong> {{ current_user.uid }}</p>
+                        <p><strong>Role:</strong> {{ current_user.role }}</p>
+                    </div>
+                    <a class="ocs-user__out" href="{{ url_for('logout') }}">
+                        <i class="fas fa-sign-out-alt"></i> Sign out
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <a class="ocs-login-btn" href="{{ url_for('login') }}">Login</a>
+            {% endif %}
+
+            <div class="dark-toggle">
+                <input type="checkbox" id="darkSwitch" onclick="darkFunction()" title="Toggle dark mode">
+            </div>
+        </div>
+    </nav>
+
+    {% block body %}{% endblock %}
+
+    {% block background %}
+        <script src="{{ url_for('static', filename='js/three.r119.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/vanta.birds.min.js') }}"></script>
+        <script>
+            VANTA.BIRDS({
+                el: "body",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                backgroundColor: 0xfdf6ee,
+                color1: 0xe07a6a,
+                color2: 0x8aaa8c
+            })
+        </script>
     {% endblock %}
 
-</body>
-
-{% block background %}
-    <script src="{{ url_for('static', filename='js/three.r119.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/vanta.birds.min.js') }}"></script>
     <script>
-        VANTA.BIRDS({
-            el: "#body_background",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00
-        })
-    </script>
-{% endblock %}
+        // Search
+        const search = document.getElementById('search');
+        search.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const reduction = 0.66;
+                const w = Math.trunc(window.innerWidth * reduction);
+                const h = Math.trunc(window.outerHeight * reduction);
+                const l = Math.trunc(window.top.screenX + ((window.innerWidth - w) / 2));
+                const t = Math.trunc(window.top.screenY + ((window.outerHeight - h) / 2));
+                const url = 'https://www.google.com/search?q=site%3A+https://nighthawkcodingsociety.com+' + search.value;
+                window.open(url, "CompSci A Search", `left=${l}, top=${t}, width=${w}, height=${h}`).focus();
+            }
+        });
 
+        // Dark mode
+        const darkSwitch = document.getElementById("darkSwitch");
+        if (darkSwitch) {
+            const isDark = localStorage.getItem("darkSwitch") === "dark";
+            darkSwitch.checked = isDark;
+            if (isDark) document.body.classList.add("dark-mode");
+        }
+
+        function darkFunction() {
+            document.body.classList.toggle("dark-mode");
+            darkSwitch.checked
+                ? localStorage.setItem("darkSwitch", "dark")
+                : localStorage.removeItem("darkSwitch");
+        }
+    </script>
+</body>
 </html>

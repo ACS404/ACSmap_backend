@@ -1,64 +1,281 @@
 {% extends "layouts/base.html" %}
 {% set project = "Home" %}
 
+{% block style %}
+<style>
+    .home-wrap {
+        padding: 4rem 2rem 6rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Hero */
+    .home-hero {
+        text-align: center;
+        margin-bottom: 4.5rem;
+        animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .home-hero__kicker {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--rose);
+        background: var(--rose-pale);
+        border: 1px solid rgba(224,122,106,0.25);
+        padding: 5px 16px;
+        border-radius: 30px;
+        margin-bottom: 1.25rem;
+    }
+
+    .home-hero__title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(2.6rem, 6vw, 4rem);
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.1;
+        margin-bottom: 1rem;
+    }
+
+    .home-hero__title em {
+        font-style: italic;
+        color: var(--rose);
+    }
+
+    .home-hero__sub {
+        font-size: 1rem;
+        color: var(--text-muted);
+        max-width: 520px;
+        margin: 0 auto;
+        line-height: 1.7;
+    }
+
+    /* Cards grid */
+    .home-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.75rem;
+    }
+
+    @media (max-width: 900px) { .home-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 1200px) and (min-width: 901px) { .home-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .home-card {
+        background: var(--bg-1);
+        border: 1px solid var(--tan-light);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(61,44,36,0.07);
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+        animation: fadeUp 0.6s ease both;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .home-card:nth-child(2) { animation-delay: 0.1s; }
+    .home-card:nth-child(3) { animation-delay: 0.2s; }
+
+    .home-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(61,44,36,0.12);
+    }
+
+    .home-card__img-wrap {
+        position: relative;
+        overflow: hidden;
+        height: 200px;
+    }
+
+    .home-card__img-wrap::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, transparent 40%, rgba(61,44,36,0.3));
+    }
+
+    .home-card__img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .home-card:hover .home-card__img { transform: scale(1.04); }
+
+    /* Card accent tab */
+    .home-card__tab {
+        position: absolute;
+        bottom: 14px;
+        left: 18px;
+        z-index: 2;
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 20px;
+        color: white;
+    }
+
+    .home-card__tab--rose   { background: var(--rose); }
+    .home-card__tab--sage   { background: var(--sage); }
+    .home-card__tab--brown  { background: var(--brown); }
+
+    .home-card__body {
+        padding: 1.5rem 1.75rem 2rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .home-card__title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.75rem;
+        line-height: 1.25;
+    }
+
+    .home-card__title mark {
+        background: var(--rose-pale);
+        color: var(--terracotta);
+        padding: 0 3px;
+        border-radius: 3px;
+    }
+
+    .home-card__list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem;
+        flex: 1;
+    }
+
+    .home-card__list li {
+        font-size: 0.84rem;
+        color: var(--text-muted);
+        line-height: 1.7;
+        padding: 4px 0;
+        padding-left: 18px;
+        position: relative;
+    }
+
+    .home-card__list li::before {
+        content: '·';
+        position: absolute;
+        left: 4px;
+        color: var(--rose);
+        font-weight: 700;
+    }
+
+    .home-card__link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--rose);
+        text-decoration: none;
+        padding: 8px 18px;
+        border: 1.5px solid rgba(224,122,106,0.35);
+        border-radius: 10px;
+        transition: all 0.18s;
+        align-self: flex-start;
+    }
+
+    .home-card__link:hover {
+        background: var(--rose);
+        color: white;
+        border-color: var(--rose);
+    }
+
+    .home-card__link::after { content: '→'; }
+
+    /* Dark mode */
+    body.dark-mode .home-hero__title { color: #f0e6dc; }
+    body.dark-mode .home-card { background: #2e1e14; border-color: #4a3028; }
+    body.dark-mode .home-card__title { color: #f0e6dc; }
+    body.dark-mode .home-card__title mark { background: rgba(196,94,74,0.15); color: #e07a6a; }
+</style>
+{% endblock %}
+
 {% block body %}
-    <!-- Start of body content specific to page -->
-    <div class="px-5 py-5 mx-auto">
-        <h1 class="text-white"><strong>Python Home Page</strong></h1>
-        <div class="row">
-            <div class="col-4">
-                <div class="card">
-                    <img class="card-img-top" src="{{ url_for('static', filename='assets/python.jpeg') }}" alt="Python Development" height="250">
-                    <div class="card-body">
-                    <h5 class="card-title">What should <mark>Student Developers learn</mark>?</h5>
-                    <p class="card-text">
-                        <ol>
-                            <li>Python 3.12 is used for most of our backend PBL. HTML, CSS, JavaScript will be used in frontend</li>
-                            <li>Visuals Studio Code (VS Code) is the primary editor, Interactive Development Environment (IDE).</li>
-                            <li>GitHub.  Managing and sharing code change, branches, pull requests, issues, and more will be through GitHub.</li>
-                            <li>DevOps. Python programmers should have a passion for managing the environment and learning automation (Git, Linux, Bash, Python Packages, Docker).</li>
-                            <li>API and Microservice using Flask.  Mastering development techniques in creating and consuming RESTful APIs</li>
-                        </ol>
-                    </p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card">
-                    <img class="card-img-top" src="{{ url_for('static', filename='assets/flask.png') }}" alt="Flask Development" height="250">
-                    <div class="card-body">
-                    <h5 class="card-title">What is <mark>Flask</mark>? How do I start Web development?</h5>
-                    <p class="card-text">
-                        <ol>
-                            <li>Flask Framework is the popular Web Application development framework of Python.</li>
-                            <li>Blueprint is Python technique to help abstract complexity, moving information into independent files and directories. Blueprints are intended to encapsulate feature-sized sections of our application into well organized files.</li>
-                            <li>HTML using Bootstrap is a great way to build interesting pages and reduce CSS</li>
-                            <li>Jinja2 is a server-side Python like template engine, supports HTML5 web development, and provides full integration with Flask.</li>
-                        </ol>
-                    </p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card">
-                    <img class="card-img-top" src="{{ url_for('static', filename='assets/pythondb.png') }}" alt="Backend and Persistence" height="250">
-                    <div class="card-body">
-                    <h5 class="card-title">How do you manage <mark>Persistent data</mark> with Python?</h5>
-                    <p class="card-text">
-                        <ol>
-                            <li>A Database is an example of persistent data that is held on a computer.  Programming languages and frameworks allow you to store and retrive data.</li>
-                            <li>SQL stands for Structured Query Language · SQL lets you access and manipulate databases and has become a long lasting development standard.</li>
-                            <li>SQLAlchemy is the Python SQL toolkit and Object Relational Mapper (ORM) that gives application developers the full power and flexibility of SQL.</li>
-                            <li>There are many newer and sometimes easier Database languages and frameworks.  Mongo, DynamoDB, Neo4J are Databases being used by students developers in last 3 years.</li>
-                        </ol>
-                    </p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                    </div>
-                </div>
-            </div>
-            
-        </div>
+<div class="home-wrap">
+
+    <!-- Hero -->
+    <div class="home-hero">
+        <span class="home-hero__kicker">Student Developer Platform</span>
+        <h1 class="home-hero__title">Build, Learn, <em>Create</em></h1>
+        <p class="home-hero__sub">
+            Explore Python, Flask, and full-stack development through hands-on project-based learning.
+        </p>
     </div>
+
+    <!-- Cards -->
+    <div class="home-grid">
+
+        <!-- Python card -->
+        <div class="home-card">
+            <div class="home-card__img-wrap">
+                <img class="home-card__img" src="{{ url_for('static', filename='assets/python.jpeg') }}" alt="Python Development">
+                <span class="home-card__tab home-card__tab--rose">Python</span>
+            </div>
+            <div class="home-card__body">
+                <h2 class="home-card__title">What should <mark>Student Developers</mark> learn?</h2>
+                <ul class="home-card__list">
+                    <li>Python 3.12 for backend; HTML, CSS, JS for frontend</li>
+                    <li>VS Code as the primary IDE and development environment</li>
+                    <li>GitHub for version control, branches, and pull requests</li>
+                    <li>DevOps: Git, Linux, Bash, Python packages, Docker</li>
+                    <li>RESTful APIs and microservices using Flask</li>
+                </ul>
+                <a href="#" class="home-card__link">Explore Python</a>
+            </div>
+        </div>
+
+        <!-- Flask card -->
+        <div class="home-card">
+            <div class="home-card__img-wrap">
+                <img class="home-card__img" src="{{ url_for('static', filename='assets/flask.png') }}" alt="Flask Development">
+                <span class="home-card__tab home-card__tab--sage">Flask</span>
+            </div>
+            <div class="home-card__body">
+                <h2 class="home-card__title">What is <mark>Flask</mark>? How do I start Web development?</h2>
+                <ul class="home-card__list">
+                    <li>Flask is Python's popular web application framework</li>
+                    <li>Blueprints abstract complexity into organized, independent files</li>
+                    <li>HTML with Bootstrap reduces boilerplate CSS dramatically</li>
+                    <li>Jinja2 is the server-side template engine for Flask</li>
+                </ul>
+                <a href="#" class="home-card__link">Explore Flask</a>
+            </div>
+        </div>
+
+        <!-- Database card -->
+        <div class="home-card">
+            <div class="home-card__img-wrap">
+                <img class="home-card__img" src="{{ url_for('static', filename='assets/pythondb.png') }}" alt="Backend and Persistence">
+                <span class="home-card__tab home-card__tab--brown">Databases</span>
+            </div>
+            <div class="home-card__body">
+                <h2 class="home-card__title">How do you manage <mark>Persistent data</mark>?</h2>
+                <ul class="home-card__list">
+                    <li>Databases store persistent data held on a computer</li>
+                    <li>SQL is the long-lasting standard for accessing and manipulating data</li>
+                    <li>SQLAlchemy is the Python ORM that gives full SQL flexibility</li>
+                    <li>MongoDB, DynamoDB, Neo4J are modern alternatives students explore</li>
+                </ul>
+                <a href="#" class="home-card__link">Explore Data</a>
+            </div>
+        </div>
+
+    </div>
+</div>
 {% endblock %}
