@@ -38,7 +38,7 @@ CORS(app, supports_credentials=True, origins=[
     "http://localhost:4200",      # ← common fallback
     "http://127.0.0.1:4200",
     "http://localhost:4599",      # ← another common fallback
-    "https://acs404.github.io/"
+    "https://acs.opencodingsociety.com/"
     "null",                       # ← for when the .ipynb is opened directly as a file
 ])
 

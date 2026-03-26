@@ -41,7 +41,7 @@ allowed_origins = [
     # Regex pattern to match any subdomain of opencodingsociety.com
     r'https://.*\.opencodingsociety\.com',
     'https://opencodingsociety.com',
-    'https://acs404.github.io/',
+    'https://acs.opencodingsociety.com/',
 ]
 
 cors = CORS(
