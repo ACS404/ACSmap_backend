@@ -3,7 +3,6 @@ server {
     listen [::]:80;
     server_name cancermap.opencodingsociety.com;
 
-    # Proxy Socket.IO connections to 8009
     location /socket.io/ {
         proxy_pass http://localhost:8009;
         proxy_http_version 1.1;
@@ -13,7 +12,6 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 
-    # Proxy all other traffic to Flask app on 8009
     location / {
         proxy_pass http://localhost:8009;
         proxy_http_version 1.1;
@@ -27,13 +25,15 @@ server {
             set $cors_origin $http_origin;
         }
 
+        # These must be outside the OPTIONS block so they apply to ALL responses
         add_header "Access-Control-Allow-Origin" "$cors_origin" always;
         add_header "Access-Control-Allow-Credentials" "true" always;
+        add_header "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS, HEAD" always;
+        add_header "Access-Control-Allow-Headers" "Authorization, Origin, X-Origin, X-Requested-With, Content-Type, Accept" always;
 
         if ($request_method = OPTIONS) {
-            add_header "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS, HEAD" always;
             add_header "Access-Control-Allow-MaxAge" 600 always;
-            add_header "Access-Control-Allow-Headers" "Authorization, Origin, X-Origin, X-Requested-With, Content-Type, Accept" always;
+            # Access-Control-Allow-Origin is already set above — no need to repeat it
             return 204;
         }
     }

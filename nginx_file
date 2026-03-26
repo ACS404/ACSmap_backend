@@ -1,20 +1,31 @@
-  server {
-      listen 80;
-      listen [::]:80;
-      server_name cancermap.opencodingsociety.com;
+server {
+    listen 80;
+    listen [::]:80;
+    server_name cancermap.opencodingsociety.com;
 
-      location / {
-          proxy_pass http://localhost:8009;
+    location / {
+        proxy_pass http://localhost:8009;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
 
-          # Preflighted requests
-          if ($request_method = OPTIONS) {
-              add_header "Access-Control-Allow-Credentials" "true" always;
-              add_header "Access-Control-Allow-Origin"  "https://open-coding-society.github.io" always;
-              add_header "Access-Control-Allow-Origin"  "https://acs404.github.io" always;
-              add_header "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS, HEAD" always;
-              add_header "Access-Control-Allow-MaxAge" 600 always;
-              add_header "Access-Control-Allow-Headers" "Authorization, Origin, X-Origin, X-Requested-With, Content-Type, Accept" always;
-              return 204;
-          }
-      }
-  }
+        set $cors_origin "";
+        if ($http_origin ~* "^https://(.*\.)?opencodingsociety\.com$") {
+            set $cors_origin $http_origin;
+        }
+        if ($http_origin = "https://acs404.github.io") {
+            set $cors_origin $http_origin;
+        }
+
+        # These must be outside the OPTIONS block so they apply to ALL responses
+        add_header "Access-Control-Allow-Origin" "$cors_origin" always;
+        add_header "Access-Control-Allow-Credentials" "true" always;
+        add_header "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS, HEAD" always;
+        add_header "Access-Control-Allow-Headers" "Authorization, Origin, X-Origin, X-Requested-With, Content-Type, Accept" always;
+
+        if ($request_method = OPTIONS) {
+            add_header "Access-Control-Allow-MaxAge" 600 always;
+            # Access-Control-Allow-Origin is already set above — no need to repeat it
+            return 204;
+        }
+    }
+}
