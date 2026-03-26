@@ -23,7 +23,7 @@ server {
         if ($http_origin ~* "^https://(.*\.)?opencodingsociety\.com$") {
             set $cors_origin $http_origin;
         }
-        if ($http_origin = "https://open-coding-society.github.io") {
+        if ($http_origin = "https://acs404.github.io") {
             set $cors_origin $http_origin;
         }
 
