@@ -1,7 +1,7 @@
 server {
     listen 80;
     listen [::]:80;
-    server_name acs.opencodingsociety.com;
+    server_name cancermap.opencodingsociety.com;
 
     location / {
         proxy_pass http://localhost:8009;
@@ -12,7 +12,7 @@ server {
         if ($http_origin ~* "^https://(.*\.)?opencodingsociety\.com$") {
             set $cors_origin $http_origin;
         }
-        if ($http_origin = "https://acs.opencodingsociety.com") {
+        if ($http_origin = "https://cancermap.opencodingsociety.com") {
             set $cors_origin $http_origin;
         }
 
