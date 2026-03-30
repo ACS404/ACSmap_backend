@@ -54,7 +54,7 @@ def add_cors_headers(response):
         response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Access-Control-Allow-Credentials'] = 'true'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization', 'X-Origin'
     return response
 
 # Admin Defaults
@@ -131,7 +131,7 @@ if not IS_PRODUCTION:
         supports_credentials=True,
         allow_origins=allowed_origins,        # changed from 'origins'
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # changed from 'methods'
-        allow_headers=["Content-Type", "Authorization"],  # changed from 'allowedHeaders'
+        allow_headers=["Content-Type", "Authorization", "X-Origin"],  # changed from 'allowedHeaders'
     )
 
 # Image upload settings
