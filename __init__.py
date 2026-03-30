@@ -117,10 +117,10 @@ if not IS_PRODUCTION:
     cors = CORS(
         app,
         supports_credentials=True,
-        origins=allowed_origins,
-        methods=["GET", "POST", "PUT", "OPTIONS"]
+        allow_origins=allowed_origins,        # changed from 'origins'
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # changed from 'methods'
+        allow_headers=["Content-Type", "Authorization"],  # changed from 'allowedHeaders'
     )
-
 
 # Image upload settings
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # maximum size of uploaded content
