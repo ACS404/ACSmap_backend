@@ -12,19 +12,16 @@ server {
         if ($http_origin ~* "^https://(.*\.)?opencodingsociety\.com$") {
             set $cors_origin $http_origin;
         }
-        if ($http_origin = "https://cancermap.opencodingsociety.com") {
-            set $cors_origin $http_origin;
-        }
 
-        # These must be outside the OPTIONS block so they apply to ALL responses
+
         add_header "Access-Control-Allow-Origin" "$cors_origin" always;
         add_header "Access-Control-Allow-Credentials" "true" always;
-        add_header "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS, HEAD" always;
-        add_header "Access-Control-Allow-Headers" "Authorization, Origin, X-Origin, X-Requested-With, Content-Type, Accept" always;
 
+        
         if ($request_method = OPTIONS) {
+            add_header "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS, HEAD" always;
             add_header "Access-Control-Allow-MaxAge" 600 always;
-            # Access-Control-Allow-Origin is already set above — no need to repeat it
+            add_header "Access-Control-Allow-Headers" "Authorization, Origin, X-Origin, X-Requested-With, Content-Type, Accept" always;
             return 204;
         }
     }
