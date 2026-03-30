@@ -13,12 +13,12 @@ server {
             set $cors_origin $http_origin;
         }
 
-
         add_header "Access-Control-Allow-Origin" "$cors_origin" always;
         add_header "Access-Control-Allow-Credentials" "true" always;
 
-        
         if ($request_method = OPTIONS) {
+            add_header "Access-Control-Allow-Origin" "$cors_origin" always;      # ← add
+            add_header "Access-Control-Allow-Credentials" "true" always;         # ← add
             add_header "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS, HEAD" always;
             add_header "Access-Control-Allow-MaxAge" 600 always;
             add_header "Access-Control-Allow-Headers" "Authorization, Origin, X-Origin, X-Requested-With, Content-Type, Accept" always;
