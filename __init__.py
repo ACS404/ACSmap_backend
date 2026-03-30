@@ -44,13 +44,6 @@ allowed_origins = [
     'https://acs.opencodingsociety.com',
 ]
 
-cors = CORS(
-   app,
-   supports_credentials=True,
-   origins=allowed_origins,
-   methods=["GET", "POST", "PUT", "OPTIONS"]
-)
-
 
 # Admin Defaults
 app.config['ADMIN_USER'] = os.environ.get('ADMIN_USER') or 'Admin Name'
@@ -118,6 +111,17 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
+# Only enable Flask-CORS in local development
+# In production, nginx handles CORS to avoid duplicate headers
+if not IS_PRODUCTION:
+    cors = CORS(
+        app,
+        supports_credentials=True,
+        origins=allowed_origins,
+        methods=["GET", "POST", "PUT", "OPTIONS"]
+    )
+
+
 # Image upload settings
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # maximum size of uploaded content
 app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.gif']  # supported file types
@@ -150,4 +154,3 @@ app.config['KASM_API_KEY_SECRET'] = os.environ.get('KASM_API_KEY_SECRET') or Non
 # GROQ API settings
 app.config['GROQ_SERVER'] = os.environ.get('GROQ_SERVER') or 'https://api.groq.com/openai/v1/chat/completions'
 app.config['GROQ_API_KEY'] = os.environ.get('GROQ_API_KEY') or None
-
