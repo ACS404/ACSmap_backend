@@ -24,7 +24,6 @@ class MicroBlogAPI:
            current_user = g.current_user
            body = request.get_json()
           
-           # Validate required fields
            if not body:
                return {'message': 'Request body is required'}, 400
           
@@ -35,15 +34,12 @@ class MicroBlogAPI:
            if len(content) > 280:
                return {'message': 'Content must be 280 characters or less'}, 400
           
-           # Optional fields
            topic_id = body.get('topicId')
-           topic_path = body.get('topicPath')  # New field for page path
+           topic_path = body.get('topicPath')
            data = body.get('data', {})
           
-           # Handle topic creation/lookup
            if topic_path and not topic_id:
                try:
-                   # Auto-create or get topic by page path
                    topic = Topic.get_or_create_for_page(
                        page_path=topic_path,
                        page_title=topic_path.replace('/', ' ').title(),
@@ -57,7 +53,6 @@ class MicroBlogAPI:
                    return {'message': f'Error handling topic: {str(topic_error)}'}, 500
           
            try:
-               # Create new micro blog post
                microblog = MicroBlog(
                    user_id=current_user.id,
                    content=content,
@@ -76,15 +71,14 @@ class MicroBlogAPI:
            except Exception as e:
                return {'message': f'Error creating micro blog post: {str(e)}'}, 500
       
-       @token_required()
+       # ── CHANGED: removed @token_required() so guests can read posts ──
        def get(self):
-           """Get micro blog posts with optional filtering"""
-           # Query parameters
-           limit = request.args.get('limit', 200, type=int)
-           topic_id = request.args.get('topicId', type=int)
+           """Get micro blog posts with optional filtering (public read)"""
+           limit     = request.args.get('limit', 200, type=int)
+           topic_id  = request.args.get('topicId', type=int)
            page_path = request.args.get('pagePath')
-           user_id = request.args.get('userId', type=int)
-           search = request.args.get('search')
+           user_id   = request.args.get('userId', type=int)
+           search    = request.args.get('search')
           
            try:
                if search:
@@ -121,22 +115,18 @@ class MicroBlogAPI:
            if not microblog_id:
                return {'message': 'MicroBlog ID is required'}, 400
           
-           # Get the micro blog post
            microblog = MicroBlog.get_by_id(microblog_id)
            if not microblog:
                return {'message': 'MicroBlog post not found'}, 404
           
-           # Check if user owns the post or is admin
            if microblog._user_id != current_user.id and getattr(current_user, 'role', None) != 'Admin':
                return {'message': 'Permission denied'}, 403
           
            try:
                content = body.get('content')
-               data = body.get('data')
-              
+               data    = body.get('data')
                updated_microblog = microblog.update(content=content, data=data)
                return jsonify(updated_microblog.read())
-              
            except ValueError as e:
                return {'message': str(e)}, 400
            except Exception as e:
@@ -155,19 +145,16 @@ class MicroBlogAPI:
            if not microblog_id:
                return {'message': 'MicroBlog ID is required'}, 400
           
-           # Get the micro blog post
            microblog = MicroBlog.get_by_id(microblog_id)
            if not microblog:
                return {'message': 'MicroBlog post not found'}, 404
           
-           # Check if user owns the post or is admin
            if microblog._user_id != current_user.id and getattr(current_user, 'role', None) != 'Admin':
                return {'message': 'Permission denied'}, 403
           
            try:
                microblog.delete()
                return {'message': 'MicroBlog post deleted successfully'}, 200
-              
            except Exception as e:
                return {'message': f'Error deleting micro blog post: {str(e)}'}, 500
   
@@ -183,10 +170,8 @@ class MicroBlogAPI:
            if not body:
                return {'message': 'Request body is required'}, 400
           
-           # Accept both postId (frontend) and microblogId (legacy)
-           microblog_id = body.get('postId') or body.get('microblogId')
+           microblog_id  = body.get('postId') or body.get('microblogId')
            reply_content = body.get('content')
-           # Optional: topicPath is ignored here (reply attaches to existing post)
           
            if not microblog_id:
                return {'message': 'postId (or microblogId) is required'}, 400
@@ -194,7 +179,6 @@ class MicroBlogAPI:
            if not reply_content:
                return {'message': 'Reply content is required'}, 400
           
-           # Get the micro blog post
            microblog = MicroBlog.get_by_id(microblog_id)
            if not microblog:
                return {'message': 'MicroBlog post not found'}, 404
@@ -206,13 +190,12 @@ class MicroBlogAPI:
                    'reply': reply,
                    'microblog': microblog.read()
                })
-              
            except ValueError as e:
                return {'message': str(e)}, 400
            except Exception as e:
                return {'message': f'Error adding reply: {str(e)}'}, 500
 
-
+       # ── Already public (no decorator) — no change needed ──
        def get(self):
            """Fetch replies for a specific microblog post (public)"""
            post_id = request.args.get('postId', type=int) or request.args.get('microblogId', type=int)
@@ -228,86 +211,52 @@ class MicroBlogAPI:
        """Handle reactions to micro blog posts"""
        @token_required()
        def post(self):
-           """Add a reaction to a micro blog post"""
            current_user = g.current_user
            body = request.get_json()
 
-
-           # --- Debug info (helps diagnose issues) ---
-           print("DEBUG current_user:", current_user)
-           print("DEBUG current_user.id:", getattr(current_user, "id", None))
-           print("DEBUG body:", body)
-
-
-           # --- Validate request body ---
            if not body:
                return {'message': 'Request body is required'}, 400
 
-
-           microblog_id = body.get('microblogId') or body.get('postId')
+           microblog_id  = body.get('microblogId') or body.get('postId')
            reaction_type = body.get('reactionType')
-
 
            if not microblog_id:
                return {'message': 'MicroBlog ID is required'}, 400
-
-
            if not reaction_type:
                return {'message': 'Reaction type is required'}, 400
 
-
-           # --- Validate user authentication ---
            user_id = getattr(current_user, 'id', None)
            if not user_id:
                return {'message': 'Not authenticated'}, 401
 
-
-           # --- Find the post ---
            microblog = MicroBlog.get_by_id(microblog_id)
            if not microblog:
                return {'message': 'MicroBlog post not found'}, 404
 
-
-           # --- Add the reaction ---
            try:
                microblog.add_reaction(user_id, reaction_type)
-
-
-               # Refresh the record to make sure we return updated data
                from __init__ import db
                db.session.refresh(microblog)
-
-
-               return jsonify({
-                   'message': 'Reaction added successfully',
-                   'microblog': microblog.read()
-               })
-
-
+               return jsonify({'message': 'Reaction added successfully', 'microblog': microblog.read()})
            except Exception as e:
                return {'message': f'Error adding reaction: {str(e)}'}, 500
-
-
       
        @token_required()
        def delete(self):
-           """Remove a reaction from a micro blog post"""
            current_user = g.current_user
            body = request.get_json()
           
            if not body:
                return {'message': 'Request body is required'}, 400
           
-           microblog_id = body.get('microblogId') or body.get('postId')
+           microblog_id  = body.get('microblogId') or body.get('postId')
            reaction_type = body.get('reactionType')
           
            if not microblog_id:
                return {'message': 'MicroBlog ID is required'}, 400
-          
            if not reaction_type:
                return {'message': 'Reaction type is required'}, 400
           
-           # Get the micro blog post
            microblog = MicroBlog.get_by_id(microblog_id)
            if not microblog:
                return {'message': 'MicroBlog post not found'}, 404
@@ -315,127 +264,93 @@ class MicroBlogAPI:
            try:
                removed = microblog.remove_reaction(current_user.id, reaction_type)
                if removed:
-                   return jsonify({
-                       'message': 'Reaction removed successfully',
-                       'microblog': microblog.read()
-                   })
+                   return jsonify({'message': 'Reaction removed successfully', 'microblog': microblog.read()})
                else:
                    return {'message': 'Reaction not found'}, 404
-                  
            except Exception as e:
                return {'message': f'Error removing reaction: {str(e)}'}, 500
-
-
 
 
 class TopicAPI:
   
    class _CRUD(Resource):
-       """Topic CRUD operations for page-based topics"""
       
        @token_required()
        def post(self):
-           """Create a new topic for a page (Admin only)"""
            current_user = g.current_user
           
            if getattr(current_user, 'role', None) != 'Admin':
                return {'message': 'Permission denied. Admin access required.'}, 403
           
            body = request.get_json()
-          
            if not body:
                return {'message': 'Request body is required'}, 400
           
-           page_path = body.get('pagePath')
+           page_path  = body.get('pagePath')
            page_title = body.get('pageTitle')
           
            if not page_path or not page_title:
                return {'message': 'Page path and title are required'}, 400
           
-           # Check if topic already exists for this page
            existing_topic = Topic.get_by_page_path(page_path)
            if existing_topic:
                return {'message': 'Topic already exists for this page path'}, 400
           
            try:
                topic_data = {
-                   'page_path': page_path,
-                   'page_title': page_title,
-                   'page_description': body.get('pageDescription'),
-                   'display_name': body.get('displayName'),
-                   'color': body.get('color', '#007bff'),
-                   'icon': body.get('icon'),
-                   'allow_anonymous': body.get('allowAnonymous', False),
-                   'moderated': body.get('moderated', False),
+                   'page_path':          page_path,
+                   'page_title':         page_title,
+                   'page_description':   body.get('pageDescription'),
+                   'display_name':       body.get('displayName'),
+                   'color':              body.get('color', '#007bff'),
+                   'icon':               body.get('icon'),
+                   'allow_anonymous':    body.get('allowAnonymous', False),
+                   'moderated':          body.get('moderated', False),
                    'max_posts_per_user': body.get('maxPostsPerUser', 10),
-                   'settings': body.get('settings', {})
+                   'settings':           body.get('settings', {})
                }
-              
                topic = Topic(**topic_data)
                created_topic = topic.create()
-              
                if not created_topic:
                    return {'message': 'Failed to create topic'}, 500
-              
                return jsonify(created_topic.read())
-              
            except Exception as e:
                return {'message': f'Error creating topic: {str(e)}'}, 500
       
        def get(self):
-           """Get topics with optional filtering (public endpoint)"""
-           # Query parameters
-           page_path = request.args.get('pagePath')
-           page_key = request.args.get('pageKey')
+           page_path   = request.args.get('pagePath')
+           page_key    = request.args.get('pageKey')
            active_only = request.args.get('activeOnly', 'true').lower() == 'true'
-           search = request.args.get('search')
+           search      = request.args.get('search')
           
            try:
                if page_path:
-                   # Get specific topic by page path
                    topic = Topic.get_by_page_path(page_path)
                    if topic:
                        return jsonify(topic.read())
                    else:
                        return {'message': 'Topic not found for this page'}, 404
-                      
                elif page_key:
-                   # Get specific topic by page key
                    topic = Topic.get_by_page_key(page_key)
                    if topic:
                        return jsonify(topic.read())
                    else:
                        return {'message': 'Topic not found for this page key'}, 404
-                      
                elif search:
-                   # Search topics
                    topics = Topic.search_by_title(search)
-                  
                else:
-                   # Get all topics
-                   if active_only:
-                       topics = Topic.get_all_active()
-                   else:
-                       topics = Topic.get_all()
-              
-               return jsonify({
-                   'topics': topics,
-                   'count': len(topics)
-               })
-              
+                   topics = Topic.get_all_active() if active_only else Topic.get_all()
+               return jsonify({'topics': topics, 'count': len(topics)})
            except Exception as e:
                return {'message': f'Error retrieving topics: {str(e)}'}, 500
       
        @token_required()
        def put(self):
-           """Update topic settings (Admin only)"""
            current_user = g.current_user
-          
            if getattr(current_user, 'role', None) != 'Admin':
                return {'message': 'Permission denied. Admin access required.'}, 403
           
            body = request.get_json()
-          
            if not body:
                return {'message': 'Request body is required'}, 400
           
@@ -448,80 +363,58 @@ class TopicAPI:
                return {'message': 'Topic not found'}, 404
           
            try:
-               # Update fields
-               update_data = {k: v for k, v in body.items() if k != 'id'}
+               update_data  = {k: v for k, v in body.items() if k != 'id'}
                updated_topic = topic.update(**update_data)
-              
                return jsonify(updated_topic.read())
-              
            except Exception as e:
                return {'message': f'Error updating topic: {str(e)}'}, 500
 
 
    class _PageMicroblogs(Resource):
-       """Get microblogs for a specific page/topic"""
       
        def get(self, page_key):
-           """Get microblogs for a specific page (public endpoint with optional auth)"""
-           # Get current user if authenticated (optional)
            current_user = None
            try:
-               # Try to get user from token if provided, but don't require it
                from api.authorize import get_current_user
                current_user = get_current_user()
            except:
-               pass  # No auth provided, continue as anonymous
+               pass
           
-           # Query parameters
            limit = request.args.get('limit', 20, type=int)
           
            try:
-               # Get topic by page key
                topic = Topic.get_by_page_key(page_key)
                if not topic:
                    return {'message': 'Page topic not found'}, 404
-              
                if not topic._is_active:
                    return {'message': 'This discussion is currently disabled'}, 403
-              
-               # Check if anonymous users can view
                if not topic._allow_anonymous and not current_user:
                    return {'message': 'Authentication required to view this discussion'}, 401
               
-               # Get recent posts for this topic
-               user_id = current_user.id if current_user else None
-               posts = topic.get_recent_posts(limit=limit, user_id=user_id)
-              
-               # Check if user can post more messages
-               can_post = False
-               if current_user:
-                   can_post = topic.can_user_post(current_user.id)
+               user_id  = current_user.id if current_user else None
+               posts    = topic.get_recent_posts(limit=limit, user_id=user_id)
+               can_post = topic.can_user_post(current_user.id) if current_user else False
               
                return jsonify({
-                   'topic': topic.read(),
-                   'microblogs': posts,
-                   'count': len(posts),
-                   'canPost': can_post,
+                   'topic':         topic.read(),
+                   'microblogs':    posts,
+                   'count':         len(posts),
+                   'canPost':       can_post,
                    'userPostCount': topic.get_user_post_count(user_id) if user_id else 0
                })
-              
            except Exception as e:
                return {'message': f'Error retrieving page microblogs: {str(e)}'}, 500
 
 
    class _AutoCreate(Resource):
-       """Auto-create topic for a page if it doesn't exist"""
       
        @token_required()
        def post(self):
-           """Auto-create or get topic for a page"""
-           # Query parameters
-           limit = request.args.get('limit', 50, type=int)
-           topic_id = request.args.get('topicId', type=int)
-           user_id = request.args.get('userId', type=int)
-           search = request.args.get('search')
+           limit     = request.args.get('limit', 50, type=int)
+           topic_id  = request.args.get('topicId', type=int)
+           user_id   = request.args.get('userId', type=int)
+           search    = request.args.get('search')
            page_path = request.args.get('pagePath')
-
 
            try:
                if search:
@@ -539,27 +432,16 @@ class TopicAPI:
                else:
                    microblogs = MicroBlog.get_all(limit)
 
-
-               return jsonify({
-                   'microblogs': microblogs,
-                   'count': len(microblogs)
-               })
-
-
+               return jsonify({'microblogs': microblogs, 'count': len(microblogs)})
            except Exception as e:
                return {'message': f'Error retrieving micro blog posts: {str(e)}'}, 500
 
 
+# Register endpoints
+api.add_resource(MicroBlogAPI._CRUD,     '/microblog',              endpoint='microblog_crud')
+api.add_resource(MicroBlogAPI._Reply,    '/microblog/reply',        endpoint='microblog_reply')
+api.add_resource(MicroBlogAPI._Reaction, '/microblog/reaction',     endpoint='microblog_reaction')
 
-
-# Register endpoints with unique endpoint names
-api.add_resource(MicroBlogAPI._CRUD, '/microblog', endpoint='microblog_crud')
-api.add_resource(MicroBlogAPI._Reply, '/microblog/reply', endpoint='microblog_reply')
-api.add_resource(MicroBlogAPI._Reaction, '/microblog/reaction', endpoint='microblog_reaction')
-
-
-# Topic endpoints
-api.add_resource(TopicAPI._CRUD, '/microblog/topics', endpoint='microblog_topic_crud')
-api.add_resource(TopicAPI._PageMicroblogs, '/microblog/page/<string:page_key>', endpoint='microblog_page_posts')
-api.add_resource(TopicAPI._AutoCreate, '/microblog/topics/auto-create', endpoint='microblog_topic_autocreate')
-
+api.add_resource(TopicAPI._CRUD,          '/microblog/topics',                    endpoint='microblog_topic_crud')
+api.add_resource(TopicAPI._PageMicroblogs,'/microblog/page/<string:page_key>',    endpoint='microblog_page_posts')
+api.add_resource(TopicAPI._AutoCreate,    '/microblog/topics/auto-create',        endpoint='microblog_topic_autocreate')
