@@ -22,17 +22,16 @@ api = Api(treatment_notes_api)
 
 # ── Auth helper (mirrors pattern used elsewhere in the project) ─────────────
 def get_current_user():
-    """Return the User object from the JWT cookie, or None."""
-    # CORRECT - use the configured token name
     token = request.cookies.get(current_app.config.get('JWT_TOKEN_NAME', 'jwt_python_flask')) or request.headers.get('Authorization', '').replace('Bearer ', '')
     if not token:
         return None
     try:
-        secret  = current_app.config.get('SECRET_KEY', os.environ.get('SECRET_KEY', 'secret'))
+        secret = current_app.config.get('SECRET_KEY', os.environ.get('SECRET_KEY', 'secret'))
         payload = jwt.decode(token, secret, algorithms=['HS256'])
-        uid     = payload.get('id') or payload.get('user_id') or payload.get('_uid')
-        return User.query.get(uid) if uid else None
-    except Exception:
+        uid = payload.get('_uid')
+        user = User.query.filter_by(_uid=uid).first()
+        return user
+    except Exception as e:
         return None
 
 
