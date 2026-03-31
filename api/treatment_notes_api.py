@@ -109,3 +109,4 @@ class TreatmentNoteDeleteAPI(Resource):
 
 api.add_resource(TreatmentNotesAPI,      '/treatment/notes')
 api.add_resource(TreatmentNoteDeleteAPI, '/treatment/notes/<int:note_id>')
+

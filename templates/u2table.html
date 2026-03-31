@@ -46,6 +46,55 @@
         margin-top: 4px;
     }
 
+    /* ── Tab Nav ── */
+    .um-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 1.5rem;
+        background: var(--bg-2);
+        border: 1px solid var(--tan-light);
+        border-radius: 14px;
+        padding: 5px;
+        width: fit-content;
+    }
+
+    .um-tab {
+        padding: 8px 22px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        font-family: 'DM Sans', sans-serif;
+        color: var(--text-muted);
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        transition: all 0.18s ease;
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .um-tab i { font-size: 0.75rem; opacity: 0.7; }
+
+    .um-tab:hover {
+        color: var(--rose);
+        background: var(--rose-pale);
+    }
+
+    .um-tab.active {
+        background: var(--bg-0);
+        color: var(--terracotta);
+        box-shadow: 0 2px 10px rgba(61,44,36,0.1);
+        font-weight: 600;
+    }
+
+    .um-tab.active i { opacity: 1; }
+
+    /* ── Tab Panels ── */
+    .um-panel { display: none; }
+    .um-panel.active { display: block; }
+
     /* Table card */
     .um-card {
         background: var(--bg-1);
@@ -56,19 +105,19 @@
     }
 
     /* Override DataTables */
-    #userTable_wrapper {
+    .dataTables_wrapper {
         padding: 1.25rem 1.5rem;
     }
 
-    #userTable_filter label,
-    #userTable_length label {
+    .dataTables_filter label,
+    .dataTables_length label {
         font-size: 0.82rem;
         color: var(--text-muted);
         font-family: 'DM Sans', sans-serif;
     }
 
-    #userTable_filter input,
-    #userTable_length select {
+    .dataTables_filter input,
+    .dataTables_length select {
         background: var(--bg-0);
         border: 1px solid var(--tan-light);
         border-radius: 8px;
@@ -79,15 +128,15 @@
         outline: none;
     }
 
-    #userTable_filter input:focus { border-color: var(--rose-light); }
+    .dataTables_filter input:focus { border-color: var(--rose-light); }
 
-    table#userTable {
+    .um-table {
         border-collapse: separate;
         border-spacing: 0;
         width: 100% !important;
     }
 
-    table#userTable thead th {
+    .um-table thead th {
         background: var(--bg-2);
         color: var(--text-muted);
         font-size: 0.73rem;
@@ -99,15 +148,13 @@
         white-space: nowrap;
     }
 
-    table#userTable thead th:first-child { border-radius: 0; }
-
-    table#userTable tbody tr {
+    .um-table tbody tr {
         transition: background 0.15s;
     }
 
-    table#userTable tbody tr:hover { background: var(--rose-pale); }
+    .um-table tbody tr:hover { background: var(--rose-pale); }
 
-    table#userTable tbody td {
+    .um-table tbody td {
         padding: 13px 14px;
         font-size: 0.84rem;
         color: var(--text);
@@ -115,7 +162,7 @@
         vertical-align: middle;
     }
 
-    table#userTable tbody tr:last-child td { border-bottom: none; }
+    .um-table tbody tr:last-child td { border-bottom: none; }
 
     /* Role badges */
     .role-badge {
@@ -143,6 +190,82 @@
         background: var(--bg-2);
         color: var(--text-muted);
         border: 1px solid var(--tan-light);
+    }
+
+    /* Frequency / status badges */
+    .freq-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.73rem;
+        font-weight: 500;
+        background: rgba(138,170,140,0.13);
+        color: #5a8a5e;
+        border: 1px solid rgba(138,170,140,0.28);
+    }
+
+    .taken-badge--yes {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.78rem;
+        color: #5a8a5e;
+        font-weight: 500;
+    }
+
+    .taken-badge--yes::before {
+        content: '';
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: var(--sage);
+        display: inline-block;
+    }
+
+    .taken-badge--no {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+    }
+
+    .taken-badge--no::before {
+        content: '';
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: var(--tan-light);
+        display: inline-block;
+    }
+
+    /* Category badges for notes */
+    .cat-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        text-transform: capitalize;
+    }
+
+    .cat-badge--side_effect  { background: rgba(196,94,74,0.1);  color: var(--terracotta); border: 1px solid rgba(196,94,74,0.18); }
+    .cat-badge--reminder     { background: rgba(212,170,90,0.12); color: #a07830;           border: 1px solid rgba(212,170,90,0.25); }
+    .cat-badge--dosage       { background: rgba(90,140,190,0.1);  color: #4a7aaa;           border: 1px solid rgba(90,140,190,0.2); }
+    .cat-badge--symptom      { background: rgba(160,90,160,0.1);  color: #8a5a9a;           border: 1px solid rgba(160,90,160,0.2); }
+    .cat-badge--general      { background: var(--bg-2); color: var(--text-muted); border: 1px solid var(--tan-light); }
+
+    /* Medication color dot */
+    .med-dot {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .med-dot__swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        flex-shrink: 0;
     }
 
     /* Profile pic */
@@ -247,8 +370,8 @@
         color: var(--text-muted) !important;
     }
 
-    /* Loading shimmer for commits */
-    .commits-loading {
+    /* Loading shimmer */
+    .commits-loading, .shimmer-cell {
         display: inline-block;
         width: 50px;
         height: 12px;
@@ -263,16 +386,52 @@
         100% { background-position: -200% 0; }
     }
 
+    /* Empty state */
+    .um-empty {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--text-muted);
+    }
+
+    .um-empty i {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.35;
+        display: block;
+    }
+
+    .um-empty p {
+        font-size: 0.85rem;
+    }
+
+    /* Note content truncation */
+    .note-content {
+        max-width: 340px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.83rem;
+    }
+
+    /* Date chip */
+    .date-chip {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        font-variant-numeric: tabular-nums;
+    }
+
     /* Dark mode */
     body.dark-mode .um-card { background: #2e1e14; border-color: #4a3028; }
-    body.dark-mode table#userTable thead th { background: #3a2418; color: #c4a08a; border-color: #4a3028; }
-    body.dark-mode table#userTable tbody td { color: #f0e6dc; border-color: rgba(74,48,40,0.4); }
-    body.dark-mode table#userTable tbody tr:hover { background: rgba(224,122,106,0.07); }
-    body.dark-mode #userTable_filter input,
-    body.dark-mode #userTable_length select { background: #3a2418; border-color: #5a3828; color: #f0e6dc; }
+    body.dark-mode .um-table thead th { background: #3a2418; color: #c4a08a; border-color: #4a3028; }
+    body.dark-mode .um-table tbody td { color: #f0e6dc; border-color: rgba(74,48,40,0.4); }
+    body.dark-mode .um-table tbody tr:hover { background: rgba(224,122,106,0.07); }
+    body.dark-mode .dataTables_filter input,
+    body.dark-mode .dataTables_length select { background: #3a2418; border-color: #5a3828; color: #f0e6dc; }
     body.dark-mode .um-header__title { color: #f0e6dc; }
     body.dark-mode .btn-edit { background: #3a2418; border-color: #5a3828; color: #c4a08a; }
     body.dark-mode .btn-edit:hover { border-color: var(--rose-light); color: var(--rose); background: rgba(224,122,106,0.1); }
+    body.dark-mode .um-tabs { background: #3a2418; border-color: #4a3028; }
+    body.dark-mode .um-tab.active { background: #2e1e14; }
 </style>
 {% endblock %}
 
@@ -283,129 +442,416 @@
         <div class="um-header__left">
             <p class="um-header__eyebrow">Admin Panel</p>
             <h1 class="um-header__title">User Management</h1>
-            <p class="um-header__count">Viewing all registered accounts</p>
+            <p class="um-header__count">Viewing all registered accounts &amp; health data</p>
         </div>
     </div>
 
-    <div class="um-card">
-        <table id="userTable" class="table" style="width:100%">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>UID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Avatar</th>
-                    <th>Kasm</th>
-                    <th>Courses</th>
-                    <th>Commits</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in user_data %}
-                {% if user.id == current_user.id or current_user.role == 'Admin' %}
-                <tr id="user-{{ user.id }}">
-                    <td style="color:var(--text-muted); font-size:0.8rem">#{{ user.id }}</td>
-                    <td style="font-weight:500">{{ user.uid }}</td>
-                    <td>{{ user.name }}</td>
-                    <td style="color:var(--text-muted); font-size:0.82rem">{{ user.email }}</td>
-                    <td>
-                        {% if user.role == 'Admin' %}
-                        <span class="role-badge role-badge--admin">Admin</span>
-                        {% elif user.role == 'Teacher' %}
-                        <span class="role-badge role-badge--teacher">Teacher</span>
-                        {% else %}
-                        <span class="role-badge role-badge--user">User</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if user.pfp %}
-                        <img src="{{ url_for('uploaded_file', filename=user.uid + '/' + user.pfp) }}"
-                             alt="Avatar" class="um-pfp">
-                        {% else %}
-                        <img src="{{ url_for('static', filename='assets/pythondb.png') }}"
-                             alt="Default Avatar" class="um-pfp">
-                        {% endif %}
-                    </td>
-                    <td id="kasm-{{ user.id }}">
-                        {% if user.kasm_server_needed %}
-                        <span class="kasm-dot kasm-dot--yes">Yes</span>
-                        {% else %}
-                        <span class="kasm-dot kasm-dot--no">No</span>
-                        {% endif %}
-                    </td>
-                    <td style="font-size:0.82rem; color:var(--text-muted)">
-                        {% for section in user.sections %}
-                        {{ section.abbreviation }}{% if not loop.last %}, {% endif %}
-                        {% endfor %}
-                    </td>
-                    <td id="commits-{{ user.uid }}">
-                        <span class="commits-loading"></span>
-                    </td>
-                    <td>
-                        <button class="btn-edit edit-btn" data-id="{{ user.id }}">
-                            <i class="fas fa-pen fa-xs"></i> Edit
-                        </button>
-                        {% if current_user.role == 'Admin' %}
-                        <button class="btn-danger-sm delete-btn" data-id="{{ user.id }}">
-                            <i class="fas fa-trash fa-xs"></i> Delete
-                        </button>
-                        <button class="btn-warn-sm reset-password-btn" data-id="{{ user.id }}">
-                            <i class="fas fa-key fa-xs"></i> Reset
-                        </button>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
+    {% if current_user.role == 'Admin' %}
+    <!-- Tab Nav (Admin only) -->
+    <div class="um-tabs" role="tablist">
+        <button class="um-tab active" data-tab="users" role="tab">
+            <i class="fas fa-users"></i> Users
+        </button>
+        <button class="um-tab" data-tab="treatments" role="tab">
+            <i class="fas fa-pills"></i> Treatments &amp; Logs
+        </button>
+        <button class="um-tab" data-tab="notes" role="tab">
+            <i class="fas fa-notes-medical"></i> Notes
+        </button>
     </div>
+    {% endif %}
+
+    <!-- ════════════════════════════ PANEL: USERS ════════════════════════════ -->
+    <div class="um-panel active" id="panel-users">
+        <div class="um-card">
+            <table id="userTable" class="um-table table" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>UID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Avatar</th>
+                        <th>Kasm</th>
+                        <th>Courses</th>
+                        <th>Commits</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in user_data %}
+                    {% if user.id == current_user.id or current_user.role == 'Admin' %}
+                    <tr id="user-{{ user.id }}">
+                        <td style="color:var(--text-muted); font-size:0.8rem">#{{ user.id }}</td>
+                        <td style="font-weight:500">{{ user.uid }}</td>
+                        <td>{{ user.name }}</td>
+                        <td style="color:var(--text-muted); font-size:0.82rem">{{ user.email }}</td>
+                        <td>
+                            {% if user.role == 'Admin' %}
+                            <span class="role-badge role-badge--admin">Admin</span>
+                            {% elif user.role == 'Teacher' %}
+                            <span class="role-badge role-badge--teacher">Teacher</span>
+                            {% else %}
+                            <span class="role-badge role-badge--user">User</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.pfp %}
+                            <img src="{{ url_for('uploaded_file', filename=user.uid + '/' + user.pfp) }}"
+                                 alt="Avatar" class="um-pfp">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='assets/pythondb.png') }}"
+                                 alt="Default Avatar" class="um-pfp">
+                            {% endif %}
+                        </td>
+                        <td id="kasm-{{ user.id }}">
+                            {% if user.kasm_server_needed %}
+                            <span class="kasm-dot kasm-dot--yes">Yes</span>
+                            {% else %}
+                            <span class="kasm-dot kasm-dot--no">No</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:0.82rem; color:var(--text-muted)">
+                            {% for section in user.sections %}
+                            {{ section.abbreviation }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td id="commits-{{ user.uid }}">
+                            <span class="commits-loading"></span>
+                        </td>
+                        <td>
+                            <button class="btn-edit edit-btn" data-id="{{ user.id }}">
+                                <i class="fas fa-pen fa-xs"></i> Edit
+                            </button>
+                            {% if current_user.role == 'Admin' %}
+                            <button class="btn-danger-sm delete-btn" data-id="{{ user.id }}">
+                                <i class="fas fa-trash fa-xs"></i> Delete
+                            </button>
+                            <button class="btn-warn-sm reset-password-btn" data-id="{{ user.id }}">
+                                <i class="fas fa-key fa-xs"></i> Reset
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if current_user.role == 'Admin' %}
+    <!-- ═════════════════════ PANEL: TREATMENTS + LOGS ═════════════════════ -->
+    <div class="um-panel" id="panel-treatments">
+
+        <!-- Treatments sub-table -->
+        <div style="margin-bottom:1rem;">
+            <p style="font-size:0.72rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--rose); margin-bottom:0.6rem;">
+                <i class="fas fa-pills fa-xs"></i>&nbsp; Medications
+            </p>
+            <div class="um-card">
+                <table id="treatmentTable" class="um-table table" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Medication</th>
+                            <th>Dosage</th>
+                            <th>Frequency</th>
+                            <th>Times</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Active</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="treatment-tbody">
+                        <tr>
+                            <td colspan="10" class="um-empty">
+                                <i class="fas fa-circle-notch fa-spin"></i>
+                                <p>Loading treatments…</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Logs sub-table -->
+        <div>
+            <p style="font-size:0.72rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--rose); margin-bottom:0.6rem;">
+                <i class="fas fa-clipboard-check fa-xs"></i>&nbsp; Dose Logs
+            </p>
+            <div class="um-card">
+                <table id="logTable" class="um-table table" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Log ID</th>
+                            <th>Treatment ID</th>
+                            <th>User</th>
+                            <th>Date</th>
+                            <th>Time Slot</th>
+                            <th>Taken</th>
+                            <th>Taken At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-tbody">
+                        <tr>
+                            <td colspan="7" class="um-empty">
+                                <i class="fas fa-circle-notch fa-spin"></i>
+                                <p>Loading logs…</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════ PANEL: NOTES ════════════════════════════ -->
+    <div class="um-panel" id="panel-notes">
+        <div class="um-card">
+            <table id="notesTable" class="um-table table" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Treatment</th>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Content</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="notes-tbody">
+                    <tr>
+                        <td colspan="8" class="um-empty">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                            <p>Loading notes…</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 
 <script>
 $(document).ready(function () {
-    const table = $("#userTable").DataTable();
-    table.page.len(-1).draw();
 
-    // Clear shimmer loaders (commits disabled)
+    // ── Users table (original behaviour) ─────────────────────────────────────
+    const userDT = $("#userTable").DataTable();
+    userDT.page.len(-1).draw();
+
     document.querySelectorAll("[id^='commits-']").forEach(el => {
         el.innerHTML = '<span style="color:var(--text-muted); font-size:0.8rem">—</span>';
     });
 
-    // Delete
     document.querySelectorAll(".delete-btn").forEach(button => {
         button.addEventListener("click", function () {
             if (!confirm("Delete this user?")) return;
             const id = this.dataset.id;
-            fetch(`/users/delete/${id}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" }
-            })
-            .then(r => r.json())
-            .then(data => {
-                alert(data.message || "User deleted.");
-                location.reload();
-            })
-            .catch(() => alert("Error deleting user."));
+            fetch(`/users/delete/${id}`, { method: "DELETE", headers: { "Content-Type": "application/json" } })
+                .then(r => r.json())
+                .then(data => { alert(data.message || "User deleted."); location.reload(); })
+                .catch(() => alert("Error deleting user."));
         });
     });
 
-    // Reset password
     document.querySelectorAll(".reset-password-btn").forEach(button => {
         button.addEventListener("click", function () {
             const id = this.dataset.id;
-            fetch(`/users/reset_password/${id}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" }
-            })
-            .then(r => r.json())
-            .then(data => alert(data.message || "Password reset."))
-            .catch(() => alert("Error resetting password."));
+            fetch(`/users/reset_password/${id}`, { method: "POST", headers: { "Content-Type": "application/json" } })
+                .then(r => r.json())
+                .then(data => alert(data.message || "Password reset."))
+                .catch(() => alert("Error resetting password."));
         });
     });
+
+    // ── Tab switching (Admin only) ────────────────────────────────────────────
+    {% if current_user.role == 'Admin' %}
+    let treatmentDT = null, logDT = null, notesDT = null;
+    let treatmentsLoaded = false, notesLoaded = false;
+
+    document.querySelectorAll('.um-tab').forEach(tab => {
+        tab.addEventListener('click', function () {
+            document.querySelectorAll('.um-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.um-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + this.dataset.tab);
+            panel.classList.add('active');
+
+            if (this.dataset.tab === 'treatments' && !treatmentsLoaded) {
+                treatmentsLoaded = true;
+                loadTreatments();
+                loadLogs();
+            }
+            if (this.dataset.tab === 'notes' && !notesLoaded) {
+                notesLoaded = true;
+                loadNotes();
+            }
+        });
+    });
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    // Build a UID→name lookup from the user table rows already in the DOM
+    const uidMap = {};
+    document.querySelectorAll('#userTable tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 3) {
+            const id   = cells[0].textContent.replace('#','').trim();
+            const name = cells[2].textContent.trim();
+            uidMap[id] = name;
+        }
+    });
+
+    function userName(userId) {
+        return uidMap[userId] ? `<span style="font-weight:500">${uidMap[userId]}</span> <span style="color:var(--text-muted);font-size:0.78rem">#${userId}</span>`
+                              : `<span style="color:var(--text-muted)">#${userId}</span>`;
+    }
+
+    function fmtDate(s) {
+        if (!s) return '<span style="color:var(--text-muted)">—</span>';
+        return `<span class="date-chip">${s}</span>`;
+    }
+
+    function catBadge(cat) {
+        const c = (cat || 'general').toLowerCase().replace(' ','_');
+        const label = (cat || 'general').replace('_',' ');
+        return `<span class="cat-badge cat-badge--${c}">${label}</span>`;
+    }
+
+    // ── Load Treatments ───────────────────────────────────────────────────────
+    function loadTreatments() {
+        fetch('/api/treatments', { credentials: 'include' })
+            .then(r => r.json())
+            .then(data => {
+                if (!Array.isArray(data) || data.length === 0) {
+                    document.getElementById('treatment-tbody').innerHTML =
+                        `<tr><td colspan="10"><div class="um-empty"><i class="fas fa-pills"></i><p>No treatments found.</p></div></td></tr>`;
+                    return;
+                }
+                const rows = data.map(t => `
+                    <tr>
+                        <td style="color:var(--text-muted);font-size:0.8rem">#${t.id}</td>
+                        <td>${userName(t.user_id)}</td>
+                        <td>
+                            <span class="med-dot">
+                                <span class="med-dot__swatch" style="background:${t.color || '#e07a6a'}"></span>
+                                <strong>${escHtml(t.medication_name)}</strong>
+                            </span>
+                        </td>
+                        <td style="color:var(--text-muted)">${escHtml(t.dosage || '—')}</td>
+                        <td><span class="freq-badge">${escHtml(t.frequency || 'daily')}</span></td>
+                        <td style="font-size:0.8rem;color:var(--text-muted)">${(t.times && t.times.length) ? t.times.join(', ') : '—'}</td>
+                        <td>${fmtDate(t.start_date)}</td>
+                        <td>${fmtDate(t.end_date)}</td>
+                        <td>${t.active
+                            ? '<span class="taken-badge--yes">Active</span>'
+                            : '<span class="taken-badge--no">Inactive</span>'}</td>
+                        <td style="font-size:0.8rem;color:var(--text-muted);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(t.notes || '—')}</td>
+                    </tr>`).join('');
+                document.getElementById('treatment-tbody').innerHTML = rows;
+
+                if (treatmentDT) { treatmentDT.destroy(); }
+                treatmentDT = $('#treatmentTable').DataTable({ pageLength: 25 });
+            })
+            .catch(() => {
+                document.getElementById('treatment-tbody').innerHTML =
+                    `<tr><td colspan="10"><div class="um-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load treatments. Check that <code>/api/admin/treatments</code> exists.</p></div></td></tr>`;
+            });
+    }
+
+    // ── Load Logs ─────────────────────────────────────────────────────────────
+    function loadLogs() {
+        fetch('/api/treatment/log', { credentials: 'include' })
+            .then(r => r.json())
+            .then(data => {
+                if (!Array.isArray(data) || data.length === 0) {
+                    document.getElementById('log-tbody').innerHTML =
+                        `<tr><td colspan="7"><div class="um-empty"><i class="fas fa-clipboard-check"></i><p>No dose logs found.</p></div></td></tr>`;
+                    return;
+                }
+                const rows = data.map(l => `
+                    <tr>
+                        <td style="color:var(--text-muted);font-size:0.8rem">#${l.id}</td>
+                        <td style="color:var(--text-muted);font-size:0.8rem">#${l.treatment_id}</td>
+                        <td>${userName(l.user_id)}</td>
+                        <td>${fmtDate(l.log_date)}</td>
+                        <td style="font-size:0.82rem">${escHtml(l.time_slot || '—')}</td>
+                        <td>${l.taken
+                            ? '<span class="taken-badge--yes">Taken</span>'
+                            : '<span class="taken-badge--no">Missed</span>'}</td>
+                        <td>${fmtDate(l.taken_at ? l.taken_at.split('T')[0] : null)}</td>
+                    </tr>`).join('');
+                document.getElementById('log-tbody').innerHTML = rows;
+
+                if (logDT) { logDT.destroy(); }
+                logDT = $('#logTable').DataTable({ pageLength: 25, order: [[3, 'desc']] });
+            })
+            .catch(() => {
+                document.getElementById('log-tbody').innerHTML =
+                    `<tr><td colspan="7"><div class="um-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load logs. Check that <code>/api/admin/treatment/logs</code> exists.</p></div></td></tr>`;
+            });
+    }
+
+    // ── Load Notes ────────────────────────────────────────────────────────────
+    function loadNotes() {
+        fetch('/api/treatment/notes', { credentials: 'include' })
+            .then(r => r.json())
+            .then(data => {
+                if (!Array.isArray(data) || data.length === 0) {
+                    document.getElementById('notes-tbody').innerHTML =
+                        `<tr><td colspan="8"><div class="um-empty"><i class="fas fa-notes-medical"></i><p>No notes found.</p></div></td></tr>`;
+                    return;
+                }
+                const rows = data.map(n => `
+                    <tr>
+                        <td style="color:var(--text-muted);font-size:0.8rem">#${n.id}</td>
+                        <td>${userName(n.user_id)}</td>
+                        <td style="color:var(--text-muted);font-size:0.82rem">${n.treatment_id ? '#'+n.treatment_id : '—'}</td>
+                        <td>${fmtDate(n.date)}</td>
+                        <td>${catBadge(n.category)}</td>
+                        <td><div class="note-content" title="${escHtml(n.content)}">${escHtml(n.content)}</div></td>
+                        <td>${fmtDate(n.created_at ? n.created_at.split('T')[0] : null)}</td>
+                        <td>
+                            <button class="btn-danger-sm note-delete-btn" data-id="${n.id}">
+                                <i class="fas fa-trash fa-xs"></i> Delete
+                            </button>
+                        </td>
+                    </tr>`).join('');
+                document.getElementById('notes-tbody').innerHTML = rows;
+
+                if (notesDT) { notesDT.destroy(); }
+                notesDT = $('#notesTable').DataTable({ pageLength: 25, order: [[6, 'desc']] });
+
+                // Bind delete buttons
+                document.querySelectorAll('.note-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        if (!confirm('Delete this note?')) return;
+                        const nid = this.dataset.id;
+                        fetch(`/api/treatment/notes/${nid}`, { method: 'DELETE', credentials: 'include' })
+                            .then(r => r.json())
+                            .then(() => { notesLoaded = false; loadNotes(); })
+                            .catch(() => alert('Error deleting note.'));
+                    });
+                });
+            })
+            .catch(() => {
+                document.getElementById('notes-tbody').innerHTML =
+                    `<tr><td colspan="8"><div class="um-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load notes. Check that <code>/api/admin/treatment/notes</code> exists.</p></div></td></tr>`;
+            });
+    }
+
+    // ── Utility: escape HTML ──────────────────────────────────────────────────
+    {% endif %}{# end admin-only JS #}
+    function escHtml(str) {
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 });
 </script>
 {% endblock %}
