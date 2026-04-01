@@ -624,68 +624,70 @@ def initMicroblogs():
       
        # Create sample micro blog posts for different pages
        sample_posts = [
-           {
-               "content": "Just finished the Flask intro lesson! The routing concept is clearer now",
-               "topic_id": created_topics[0].id,  # Flask Introduction
-               "data": {
-                   "lessonProgress": "completed",
-                   "rating": 5,
-                   "hashtags": ["flask", "python", "webdev"],
-                   "reactions": {"👍": [], "🎉": []},
-                   "replies": []
-               }
-           },
-           {
-               "content": "The JavaScript array methods are tricky! Anyone have tips for remembering map vs filter?",
-               "topic_id": created_topics[1].id,  # JavaScript Basics
-               "data": {
-                   "helpRequested": True,
-                   "difficulty": "medium",
-                   "hashtags": ["javascript", "arrays", "help"],
-                   "reactions": {"🤔": [], "💡": []},
-                   "replies": []
-               }
-           },
-           {
-               "content": "Excited to share my portfolio! Added a new React project with dark mode toggle",
-               "topic_id": created_topics[2].id,  # Portfolio Showcase
-               "data": {
-                   "projectType": "react",
-                   "features": ["dark-mode", "responsive"],
-                   "seeking": "feedback",
-                   "hashtags": ["portfolio", "react", "showcase"],
-                   "reactions": {"❤️": [], "🔥": []},
-                   "replies": []
-               }
-           },
-           {
-               "content": "Today: Working on database models, planning API endpoints, studying for quiz tomorrow",
-               "topic_id": created_topics[3].id,  # Daily Standup
-               "data": {
-                   "standupType": "daily",
-                   "tasks": ["database-models", "api-planning", "quiz-prep"],
-                   "blockers": [],
-                   "mood": "productive",
-                   "hashtags": ["standup", "progress"],
-                   "reactions": {"💪": []},
-                   "replies": []
-               }
-           },
-           {
-               "content": "Great study resource: MDN docs have interactive examples. Really helpful for learning!",
-               "topic_id": created_topics[4].id,  # Study Materials
-               "data": {
-                   "resourceType": "documentation",
-                   "resourceUrl": "https://developer.mozilla.org",
-                   "subject": "javascript",
-                   "recommendation": True,
-                   "hashtags": ["resources", "javascript", "documentation"],
-                   "reactions": {"📚": [], "👍": []},
-                   "replies": []
-               }
-           }
+            {
+                "content": "Just got my 6-month scan results back. NED! Never thought I'd cry happy tears reading a radiology report 💙",
+                "topic_id": created_topics[0].id,  # Survivor Stories
+                "data": {
+                    "milestoneType": "NED",
+                    "cancerType": "breast",
+                    "treatmentPhase": "post-treatment",
+                    "hashtags": ["NED", "survivor", "breastcancer", "hope"],
+                    "reactions": {"💙": [], "🎉": [], "💪": []},
+                    "replies": []
+                }
+            },
+            {
+                "content": "Starting chemo next week and honestly terrified. Has anyone dealt with nausea management? What actually helped you?",
+                "topic_id": created_topics[1].id,  # Treatment Support
+                "data": {
+                    "helpRequested": True,
+                    "treatmentType": "chemotherapy",
+                    "concern": "side-effects",
+                    "hashtags": ["chemo", "sideeffects", "help", "nausea"],
+                    "reactions": {"❤️": [], "🤗": []},
+                    "replies": []
+                }
+            },
+            {
+                "content": "6 months post-treatment and I just ran my first 5K. My oncologist said I'd be back to normal and she was right 🏃‍♀️",
+                "topic_id": created_topics[2].id,  # Recovery Milestones
+                "data": {
+                    "milestoneType": "fitness",
+                    "monthsPostTreatment": 6,
+                    "activity": "running",
+                    "seeking": "celebration",
+                    "hashtags": ["recovery", "5K", "survivorship", "stronger"],
+                    "reactions": {"🔥": [], "💪": [], "🎉": []},
+                    "replies": []
+                }
+            },
+            {
+                "content": "This week: completed radiation session 18 of 25, managing fatigue better with short walks, connecting with my support group Thursday",
+                "topic_id": created_topics[3].id,  # Weekly Check-in
+                "data": {
+                    "checkinType": "weekly",
+                    "tasks": ["radiation-session", "fatigue-management", "support-group"],
+                    "blockers": ["fatigue"],
+                    "mood": "hopeful",
+                    "hashtags": ["checkin", "radiation", "progress"],
+                    "reactions": {"💙": [], "🙏": []},
+                    "replies": []
+                }
+            },
+            {
+                "content": "ACS just updated their early detection guidelines for colorectal cancer. Screenings now recommended starting at 45. Please share with your family!",
+                "topic_id": created_topics[4].id,  # Resources & Research
+                "data": {
+                    "resourceType": "guidelines",
+                    "resourceUrl": "https://www.cancer.org",
+                    "subject": "colorectal",
+                    "recommendation": True,
+                    "hashtags": ["earlydetection", "screening", "ACS", "prevention"],
+                    "reactions": {"📌": [], "👍": [], "❤️": []},
+                    "replies": []
+                }
+            }
        ]
-      
        # Update sample_posts to include user assignment
        for i, post_data in enumerate(sample_posts):
            # Assign users cyclically to posts
