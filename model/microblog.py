@@ -177,7 +177,24 @@ class MicroBlog(db.Model):
            db.session.rollback()
            raise e
 
-
+   def delete_reply(self, reply_id, user_id, is_admin=False):
+        """Delete a reply by ID. Only the reply author or an admin can delete."""
+        replies = self.get_replies()
+        match = next((r for r in replies if r.get('id') == reply_id), None)
+        if not match:
+            return False, 'Reply not found'
+        if match.get('userId') != user_id and not is_admin:
+            return False, 'Permission denied'
+        self._data['replies'] = [r for r in replies if r.get('id') != reply_id]
+        self._updated_at = datetime.utcnow()
+        flag_modified(self, '_data')
+        try:
+            db.session.commit()
+            return True, 'Deleted'
+        except Exception as e:
+            db.session.rollback()
+            raise e 
+        
    def add_reaction(self, user_id, reaction_type):
        """Add a reaction (like, heart, etc.) to the JSON data"""
        if not self._data:

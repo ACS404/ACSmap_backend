@@ -206,6 +206,36 @@ class MicroBlogAPI:
                return {'message': 'MicroBlog post not found'}, 404
            replies = microblog.get_replies()
            return jsonify({'replies': replies, 'count': len(replies)})
+       @token_required()
+
+       def delete(self):
+            """Delete a reply from a micro blog post"""
+            current_user = g.current_user
+            body = request.get_json()
+
+            if not body:
+                return {'message': 'Request body is required'}, 400
+
+            microblog_id = body.get('postId') or body.get('microblogId')
+            reply_id     = body.get('replyId')
+
+            if not microblog_id:
+                return {'message': 'postId is required'}, 400
+            if not reply_id:
+                return {'message': 'replyId is required'}, 400
+
+            microblog = MicroBlog.get_by_id(microblog_id)
+            if not microblog:
+                return {'message': 'MicroBlog post not found'}, 404
+
+            is_admin = getattr(current_user, '_role', None) == 'Admin'
+            try:
+                ok, msg = microblog.delete_reply(reply_id, current_user.id, is_admin)
+                if not ok:
+                    return {'message': msg}, 403
+                return jsonify({'message': 'Reply deleted', 'microblog': microblog.read()})
+            except Exception as e:
+                return {'message': f'Error deleting reply: {str(e)}'}, 500
   
    class _Reaction(Resource):
        """Handle reactions to micro blog posts"""
