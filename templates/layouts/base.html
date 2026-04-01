@@ -145,7 +145,8 @@
         .ocs-dd { position: relative; }
 
         .ocs-dd__panel {
-            display: none;
+            visibility: hidden;
+            opacity: 0;
             position: absolute;
             top: calc(100% + 10px);
             left: 0;
@@ -155,7 +156,8 @@
             padding: 8px;
             min-width: 190px;
             box-shadow: 0 10px 36px rgba(61,44,36,0.11);
-            animation: fadeDown 0.15s ease;
+            /* hide instantly on show, delay 300ms on hide */
+            transition: opacity 0.15s ease, visibility 0s linear 0.3s;
         }
 
         @keyframes fadeDown {
@@ -163,7 +165,13 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        .ocs-dd:hover .ocs-dd__panel { display: block; }
+        .ocs-dd:hover .ocs-dd__panel {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.15s ease, visibility 0s linear 0s;
+            animation: fadeDown 0.15s ease;
+        }
+
 
         .ocs-dd__item {
             display: block;
@@ -223,7 +231,8 @@
         .ocs-user__pill .chevron { font-size: 0.65rem; color: var(--text-muted); }
 
         .ocs-user__drop {
-            display: none;
+            visibility: hidden;
+            opacity: 0;
             position: absolute;
             top: calc(100% + 10px);
             right: 0;
@@ -233,10 +242,15 @@
             padding: 8px;
             min-width: 210px;
             box-shadow: 0 10px 36px rgba(61,44,36,0.11);
-            animation: fadeDown 0.15s ease;
+            transition: opacity 0.15s ease, visibility 0s linear 0.3s;
         }
 
-        .ocs-user:hover .ocs-user__drop { display: block; }
+        .ocs-user:hover .ocs-user__drop {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.15s ease, visibility 0s linear 0s;
+            animation: fadeDown 0.15s ease;
+        }
 
         .ocs-user__meta {
             padding: 10px 14px 12px;
@@ -332,8 +346,7 @@
     <nav class="ocs-nav">
         <!-- Brand -->
         <a class="ocs-brand" href="{{ url_for('index') }}">
-            <img src="{{ url_for('static', filename='assets/ncs_logo.png') }}" alt="OCS Logo">
-            <span class="ocs-brand__name">America Cancer<em>Society</em></span>
+            <span class="ocs-brand__name">America Cancer<em> Society</em></span>
         </a>
 
         <!-- Center nav -->

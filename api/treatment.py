@@ -13,6 +13,8 @@ from sqlalchemy.exc import IntegrityError
 
 from __init__ import db
 from model.treatment import Treatment, TreatmentLog
+from model.user import User  
+from model.treatment_notes import TreatmentNote
 
 treatment_api = Blueprint('treatment_api', __name__, url_prefix='/api')
 
@@ -39,6 +41,13 @@ def _require_user():
     except Exception:
         return None, (jsonify({'message': 'Token invalid'}), 401)
 
+def _require_admin():
+    user, err = _require_user()
+    if err:
+        return None, err
+    if getattr(user, '_role', None) != 'Admin':
+        return None, (jsonify({'message': 'Admin only'}), 403)
+    return user, None
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -268,3 +277,69 @@ def cancer_risk_analysis():
 
     return jsonify({'analysis': _gemini_cancer_analysis(profile)})
 
+
+@treatment_api.route('/admin/treatments', methods=['GET', 'OPTIONS'])
+def admin_treatments():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    _, err = _require_admin()
+    if err:
+        return err
+    rows = Treatment.query.order_by(Treatment.user_id, Treatment.created_at).all()
+    result = []
+    for r in rows:
+        d = r.read()
+        d['user_id'] = r.user_id
+        user = User.query.filter_by(id=r.user_id).first()
+        d['user_uid']  = user.uid  if user else None
+        d['user_name'] = user.name if user else None
+        result.append(d)
+    return jsonify(result)
+
+
+@treatment_api.route('/admin/treatment/logs', methods=['GET', 'OPTIONS'])
+def admin_treatment_logs():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    _, err = _require_admin()
+    if err:
+        return err
+    logs = TreatmentLog.query.order_by(TreatmentLog.log_date.desc()).all()
+    result = []
+    for l in logs:
+        d = l.read()
+        d['user_id'] = l.user_id
+        user = User.query.filter_by(id=l.user_id).first()
+        d['user_uid']  = user.uid  if user else None
+        d['user_name'] = user.name if user else None
+        result.append(d)
+    return jsonify(result)
+
+
+@treatment_api.route('/admin/treatment/notes', methods=['GET', 'DELETE', 'OPTIONS'])
+def admin_treatment_notes():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    _, err = _require_admin()
+    if err:
+        return err
+
+    if request.method == 'DELETE':
+        note_id = request.args.get('id') or (request.get_json() or {}).get('id')
+        note = TreatmentNote.query.filter_by(id=note_id).first()
+        if not note:
+            return jsonify({'message': 'Not found'}), 404
+        db.session.delete(note)
+        db.session.commit()
+        return jsonify({'deleted': note_id})
+
+    notes = TreatmentNote.query.order_by(TreatmentNote.created_at.desc()).all()
+    result = []
+    for n in notes:
+        d = n.to_dict()
+        d['user_id'] = n.user_id
+        user = User.query.filter_by(id=n.user_id).first()
+        d['user_uid']  = user.uid  if user else None
+        d['user_name'] = user.name if user else None
+        result.append(d)
+    return jsonify(result)

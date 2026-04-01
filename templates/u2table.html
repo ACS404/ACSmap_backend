@@ -420,6 +420,10 @@
         font-variant-numeric: tabular-nums;
     }
 
+    /* User cell */
+    .user-cell__name { font-weight: 500; }
+    .user-cell__meta { color: var(--text-muted); font-size: 0.78rem; }
+
     /* Dark mode */
     body.dark-mode .um-card { background: #2e1e14; border-color: #4a3028; }
     body.dark-mode .um-table thead th { background: #3a2418; color: #c4a08a; border-color: #4a3028; }
@@ -643,7 +647,36 @@
 <script>
 $(document).ready(function () {
 
-    // ── Users table (original behaviour) ─────────────────────────────────────
+    // ── Utility: escape HTML ──────────────────────────────────────────────────
+    function escHtml(str) {
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Utility: render a user cell from API-provided fields ─────────────────
+    // Backend now returns user_name, user_uid, and user_id on every admin row,
+    // so we no longer need to scrape the DOM for a uidMap.
+    function userName(name, uid, id) {
+        if (name) {
+            return `<span class="user-cell__name">${escHtml(name)}</span> `
+                 + `<span class="user-cell__meta">${escHtml(uid || '')} #${id}</span>`;
+        }
+        return `<span class="user-cell__meta">#${id}</span>`;
+    }
+
+    // ── Utility: format a date string ────────────────────────────────────────
+    function fmtDate(s) {
+        if (!s) return '<span style="color:var(--text-muted)">—</span>';
+        return `<span class="date-chip">${escHtml(s)}</span>`;
+    }
+
+    // ── Utility: category badge ───────────────────────────────────────────────
+    function catBadge(cat) {
+        const c = (cat || 'general').toLowerCase().replace(' ', '_');
+        const label = (cat || 'general').replace('_', ' ');
+        return `<span class="cat-badge cat-badge--${escHtml(c)}">${escHtml(label)}</span>`;
+    }
+
+    // ── Users table ───────────────────────────────────────────────────────────
     const userDT = $("#userTable").DataTable();
     userDT.page.len(-1).draw();
 
@@ -697,37 +730,11 @@ $(document).ready(function () {
         });
     });
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-    // Build a UID→name lookup from the user table rows already in the DOM
-    const uidMap = {};
-    document.querySelectorAll('#userTable tbody tr').forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 3) {
-            const id   = cells[0].textContent.replace('#','').trim();
-            const name = cells[2].textContent.trim();
-            uidMap[id] = name;
-        }
-    });
-
-    function userName(userId) {
-        return uidMap[userId] ? `<span style="font-weight:500">${uidMap[userId]}</span> <span style="color:var(--text-muted);font-size:0.78rem">#${userId}</span>`
-                              : `<span style="color:var(--text-muted)">#${userId}</span>`;
-    }
-
-    function fmtDate(s) {
-        if (!s) return '<span style="color:var(--text-muted)">—</span>';
-        return `<span class="date-chip">${s}</span>`;
-    }
-
-    function catBadge(cat) {
-        const c = (cat || 'general').toLowerCase().replace(' ','_');
-        const label = (cat || 'general').replace('_',' ');
-        return `<span class="cat-badge cat-badge--${c}">${label}</span>`;
-    }
-
     // ── Load Treatments ───────────────────────────────────────────────────────
+    // Hits the admin endpoint which returns ALL users' treatments,
+    // each row enriched with user_name and user_uid from the backend.
     function loadTreatments() {
-        fetch('/api/treatments', { credentials: 'include' })
+        fetch('/api/admin/treatments', { credentials: 'include' })
             .then(r => r.json())
             .then(data => {
                 if (!Array.isArray(data) || data.length === 0) {
@@ -738,16 +745,16 @@ $(document).ready(function () {
                 const rows = data.map(t => `
                     <tr>
                         <td style="color:var(--text-muted);font-size:0.8rem">#${t.id}</td>
-                        <td>${userName(t.user_id)}</td>
+                        <td>${userName(t.user_name, t.user_uid, t.user_id)}</td>
                         <td>
                             <span class="med-dot">
-                                <span class="med-dot__swatch" style="background:${t.color || '#e07a6a'}"></span>
+                                <span class="med-dot__swatch" style="background:${escHtml(t.color || '#e07a6a')}"></span>
                                 <strong>${escHtml(t.medication_name)}</strong>
                             </span>
                         </td>
                         <td style="color:var(--text-muted)">${escHtml(t.dosage || '—')}</td>
                         <td><span class="freq-badge">${escHtml(t.frequency || 'daily')}</span></td>
-                        <td style="font-size:0.8rem;color:var(--text-muted)">${(t.times && t.times.length) ? t.times.join(', ') : '—'}</td>
+                        <td style="font-size:0.8rem;color:var(--text-muted)">${(t.times && t.times.length) ? t.times.map(escHtml).join(', ') : '—'}</td>
                         <td>${fmtDate(t.start_date)}</td>
                         <td>${fmtDate(t.end_date)}</td>
                         <td>${t.active
@@ -762,13 +769,15 @@ $(document).ready(function () {
             })
             .catch(() => {
                 document.getElementById('treatment-tbody').innerHTML =
-                    `<tr><td colspan="10"><div class="um-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load treatments. Check that <code>/api/admin/treatments</code> exists.</p></div></td></tr>`;
+                    `<tr><td colspan="10"><div class="um-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load treatments.</p></div></td></tr>`;
             });
     }
 
     // ── Load Logs ─────────────────────────────────────────────────────────────
+    // Hits the admin endpoint which returns ALL users' dose logs,
+    // each row enriched with user_name and user_uid from the backend.
     function loadLogs() {
-        fetch('/api/treatment/log', { credentials: 'include' })
+        fetch('/api/admin/treatment/logs', { credentials: 'include' })
             .then(r => r.json())
             .then(data => {
                 if (!Array.isArray(data) || data.length === 0) {
@@ -780,7 +789,7 @@ $(document).ready(function () {
                     <tr>
                         <td style="color:var(--text-muted);font-size:0.8rem">#${l.id}</td>
                         <td style="color:var(--text-muted);font-size:0.8rem">#${l.treatment_id}</td>
-                        <td>${userName(l.user_id)}</td>
+                        <td>${userName(l.user_name, l.user_uid, l.user_id)}</td>
                         <td>${fmtDate(l.log_date)}</td>
                         <td style="font-size:0.82rem">${escHtml(l.time_slot || '—')}</td>
                         <td>${l.taken
@@ -795,13 +804,15 @@ $(document).ready(function () {
             })
             .catch(() => {
                 document.getElementById('log-tbody').innerHTML =
-                    `<tr><td colspan="7"><div class="um-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load logs. Check that <code>/api/admin/treatment/logs</code> exists.</p></div></td></tr>`;
+                    `<tr><td colspan="7"><div class="um-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load logs.</p></div></td></tr>`;
             });
     }
 
     // ── Load Notes ────────────────────────────────────────────────────────────
+    // Hits the admin endpoint which returns ALL users' notes,
+    // each row enriched with user_name and user_uid from the backend.
     function loadNotes() {
-        fetch('/api/treatment/notes', { credentials: 'include' })
+        fetch('/api/admin/treatment/notes', { credentials: 'include' })
             .then(r => r.json())
             .then(data => {
                 if (!Array.isArray(data) || data.length === 0) {
@@ -812,7 +823,7 @@ $(document).ready(function () {
                 const rows = data.map(n => `
                     <tr>
                         <td style="color:var(--text-muted);font-size:0.8rem">#${n.id}</td>
-                        <td>${userName(n.user_id)}</td>
+                        <td>${userName(n.user_name, n.user_uid, n.user_id)}</td>
                         <td style="color:var(--text-muted);font-size:0.82rem">${n.treatment_id ? '#'+n.treatment_id : '—'}</td>
                         <td>${fmtDate(n.date)}</td>
                         <td>${catBadge(n.category)}</td>
@@ -834,7 +845,7 @@ $(document).ready(function () {
                     btn.addEventListener('click', function () {
                         if (!confirm('Delete this note?')) return;
                         const nid = this.dataset.id;
-                        fetch(`/api/treatment/notes/${nid}`, { method: 'DELETE', credentials: 'include' })
+                        fetch(`/api/admin/treatment/notes?id=${nid}`, { method: 'DELETE', credentials: 'include' })
                             .then(r => r.json())
                             .then(() => { notesLoaded = false; loadNotes(); })
                             .catch(() => alert('Error deleting note.'));
@@ -843,15 +854,10 @@ $(document).ready(function () {
             })
             .catch(() => {
                 document.getElementById('notes-tbody').innerHTML =
-                    `<tr><td colspan="8"><div class="um-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load notes. Check that <code>/api/admin/treatment/notes</code> exists.</p></div></td></tr>`;
+                    `<tr><td colspan="8"><div class="um-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load notes.</p></div></td></tr>`;
             });
     }
-
-    // ── Utility: escape HTML ──────────────────────────────────────────────────
     {% endif %}{# end admin-only JS #}
-    function escHtml(str) {
-        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
 });
 </script>
 {% endblock %}
