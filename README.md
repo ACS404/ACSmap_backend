@@ -14,7 +14,7 @@
 
 ## Key Features
 
-### 🔬 Cancer Risk Prediction
+### Cancer Risk Prediction
 - **12 Cancer Types**: Lung, colorectal, breast, prostate, melanoma, liver, cervical, stomach, bladder, lymphoma, leukemia, and pancreatic
 - **Evidence-Based Modeling**: Uses ACS Cancer Facts & Figures 2026 baseline lifetime risk data
 - **Machine Learning**: Ensemble methods (Logistic Regression, Random Forest, Decision Tree) for robust predictions
@@ -25,20 +25,20 @@
   - Occupational & Environmental: Chemical exposures, UV exposure
 - **Personalized Analysis**: AI-generated narrative explaining risk factors and ACS screening recommendations
 
-### 💊 Treatment & Medication Management
+### Treatment & Medication Management
 - **Treatment Logging**: Track daily medication adherence with customizable time slots
 - **Medication Database**: Search and learn about medications with AI-powered descriptions
 - **Flexible Scheduling**: Support for various medication frequencies (daily, weekly, as-needed)
 - **Color-Coded Tracking**: Visual tracking with custom colors for different medications
 - **Admin Reports**: View all treatments and logs across patients for healthcare providers
 
-### 🔐 User Management
+### User Management
 - **Secure Authentication**: JWT tokens with secure HTTP-only cookies
 - **Role-Based Access**: Admin, Educator, and Patient roles with appropriate permissions
 - **Profile Management**: User profiles with contact information and preferences
 - **Password Reset**: Secure password reset capabilities for administrators
 
-### 🤖 AI Integration
+### AI Integration
 - **Gemini AI Chat**: Ask questions about cancer prevention, risk factors, and screening guidelines
 - **Medication Information**: AI-generated summaries of medication uses and side effects
 - **Personalized Risk Narratives**: 3-paragraph personalized cancer risk explanations based on individual profiles
