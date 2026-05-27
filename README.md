@@ -1,265 +1,478 @@
-# README
+# ACSmap Backend
 
-> This is a project to support AP Computer Science Principles (APCSP) as well as a UC articulated Data Structures course. It was crafted iteratively starting in 2020 to the present time.  The primary purposes are ...
+> ACSmap is a comprehensive cancer prevention and treatment management platform developed for the American Cancer Society (ACS). This backend server provides REST APIs for user authentication, cancer risk assessment, treatment tracking, medication management, and AI-powered health insights.
 
-- Used as starter code for student projects for `AP CSP 1 and 2` and `Data Structures 1` curriculum.
-- Used to teach key principles in learning the Python Flask programming environment.
-- Used as a backend server to service API's in a frontend-to-backend pipeline. Review the `api` folder in the project for endpoints.
-- Contains a minimal frontend, mostly to support Administrative functionality using the `templates` folder and `Jinja2` to define UIs.
-- Contains SQL database code in the `model` folder to introduce concepts of persistent data and storage.  Perisistence folder is `instance/volumes` for generated SQLite3 db.
-- Contains capabilities for deployment and has been used with AWS, Ubuntu, Docker, docker-compose, and Nginx to `deploy a WSGI server`.
-- Contains APIs to support `user authentication and cookies`, a great deal of which was contributed by Aiden Wu a former student in CSP.  
+## Project Overview
 
-## Flask Portfolio Starter
+- **Cancer Risk Assessment**: Machine learning-based cancer risk prediction using ACS Cancer Facts & Figures 2026 data
+- **Treatment & Medication Tracking**: Track cancer treatments, medications, and daily adherence with personalized schedules
+- **User Authentication**: Secure JWT-based authentication with role-based access control (Admin, Educator, Patient)
+- **AI-Powered Insights**: Gemini AI integration for personalized cancer risk analysis and medication information
+- **Comprehensive Health Profile**: Capture demographic, lifestyle, family history, and medical history data
+- **Admin Dashboard**: Administrative tools for managing users, viewing treatment logs, and monitoring patient data
+- **HIPAA-Friendly Architecture**: Built with SQLite locally and AWS RDS for production with secure credential management
 
-Use this project to create a Flask Server.
+## Key Features
 
-- GitHub link: [flask](https://github.com/open-coding-society/flask), runtime link is published under the About on this same page.
-- `Use this as template` option is availble if you plan on making your instance of the repository.
-- `Fork` the repository if you plan to contribute though GitHub PRs.
+### 🔬 Cancer Risk Prediction
+- **12 Cancer Types**: Lung, colorectal, breast, prostate, melanoma, liver, cervical, stomach, bladder, lymphoma, leukemia, and pancreatic
+- **Evidence-Based Modeling**: Uses ACS Cancer Facts & Figures 2026 baseline lifetime risk data
+- **Machine Learning**: Ensemble methods (Logistic Regression, Random Forest, Decision Tree) for robust predictions
+- **Risk Factors Assessed**:
+  - Demographics: Age, sex, race/ethnicity
+  - Lifestyle: Smoking status, alcohol consumption, BMI, physical activity, diet quality
+  - Medical History: Family history, diabetes, hepatitis, HPV, H. pylori, IBD, radiation exposure, immunosuppression
+  - Occupational & Environmental: Chemical exposures, UV exposure
+- **Personalized Analysis**: AI-generated narrative explaining risk factors and ACS screening recommendations
 
-## The conventional way to get started
+### 💊 Treatment & Medication Management
+- **Treatment Logging**: Track daily medication adherence with customizable time slots
+- **Medication Database**: Search and learn about medications with AI-powered descriptions
+- **Flexible Scheduling**: Support for various medication frequencies (daily, weekly, as-needed)
+- **Color-Coded Tracking**: Visual tracking with custom colors for different medications
+- **Admin Reports**: View all treatments and logs across patients for healthcare providers
 
-> Quick steps that can be used with MacOS, WSL Ubuntu, or Ubuntu; this uses Python 3.9 or later as a prerequisite.
+### 🔐 User Management
+- **Secure Authentication**: JWT tokens with secure HTTP-only cookies
+- **Role-Based Access**: Admin, Educator, and Patient roles with appropriate permissions
+- **Profile Management**: User profiles with contact information and preferences
+- **Password Reset**: Secure password reset capabilities for administrators
 
-- Open a Terminal, clone a project and `cd` into the project directory.  Use a `different link` and name for `name` for clone to match your repo.
+### 🤖 AI Integration
+- **Gemini AI Chat**: Ask questions about cancer prevention, risk factors, and screening guidelines
+- **Medication Information**: AI-generated summaries of medication uses and side effects
+- **Personalized Risk Narratives**: 3-paragraph personalized cancer risk explanations based on individual profiles
+- **ACS-Aligned Responses**: All AI responses grounded in ACS Cancer Facts & Figures 2026 data
+
+## Quick Start
+
+> Prerequisites: Python 3.9 or later (macOS, WSL Ubuntu, or Ubuntu)
+
+### Clone and Setup
 
 ```bash
-mkdir -p ~/openccs; cd ~/opencs
-
-git clone https://github.com/open-coding-ocietyflask.git
-
-cd flask
+mkdir -p ~/acsmap
+cd ~/acsmap
+git clone https://github.com/ACS404/ACSmap_backend.git
+cd ACSmap_backend
 ```
 
-- Install python dependencies for Flask, etc.
+### Install Dependencies
 
 ```bash
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Open project in VSCode
+### Configure Environment
 
-- Prepare VSCode and run
-  - From Terminal run VSCode
+Create a `.env` file in the project root:
 
-  ```bash
-  code .
-  ```
+```shell
+# Server Configuration
+FLASK_PORT=8009
+SECRET_KEY=your-secret-key-here
 
-  - Open Setting: Ctrl-Shift P or Cmd-Shift
-    - Search Python: Select Interpreter.
-    - Match interpreter to `which python` from terminal.
-    - Shourd be ./venv/bin/python
+# JWT Token Configuration
+JWT_TOKEN_NAME=jwt_python_flask
 
-  - From Extensions Marketplace install `SQLite3 Editor`
-    - Open and view SQL database file `instance/volumes/user_management.db`
+# Admin user defaults
+ADMIN_USER='Admin User'
+ADMIN_UID='admin'
+ADMIN_PASSWORD='admin123'
+DEFAULT_PASSWORD='password123'
 
-  - Make a local `.env` file in root of project to contain your secret passwords
+# Default test user
+USER_NAME='Test Patient'
+USER_UID='testpatient'
+USER_PASSWORD='testpass123'
 
-  ```shell
-  # Port configuration
-  # FLASK_PORT=8001
-  # Admin user reset password 
-  DEFAULT_PASSWORD='123Qwerty!'
-  DEFAULT_PFP='default.png'
-  # Admin user defaults
-  ADMIN_USER='Thomas Edison'
-  ADMIN_UID='toby'
-  ADMIN_PASSWORD='123Toby!'
-  ADMIN_PFP='toby.png'
-  # Teacher user defaults
-  TEACHER_USER='Nikola Tesla'
-  TEACHER_UID='niko'
-  TEACHER_PASSWORD='123Niko!'
-  TEACHER_PFP='niko.png'
-  # Default user for testing 
-  USER_NAME='Grace Hopper'
-  USER_UID='hop'
-  USER_PASSWORD='123Hop!'
-  USER_PFP='hop.png'
-  # Convience user defaults
-  MY_NAME='John Mortensen'
-  MY_UID='jm1021'
-  MY_ROLE='admin'
-  # Obtain key, [Google AI Studio](https://aistudio.google.com/api-keys)
-  GEMINI_API_KEY= 'AIzaSyC_yfyvnZy2-ynV7yk42MxkTuAdMPqL82o'
-  GEMINI_SERVER=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
-  # Obtain key, [Groq Console](https://console.groq.com/keys)
-  GROQ_API_KEY=xxxxx
-  GROQ_SERVER=https://api.groq.com/openai/v1/chat/completions
-  # GitHub Configuation
-  GITHUB_TOKEN=ghp_xxx
-  GITHUB_TARGET_TYPE=user  # Use 'organization' or 'user'
-  GITHUB_TARGET_NAME=Open-Coding-Society
-  # KASM Configuration (server is defaulted)
-  KASM_SERVER=https://kasm.opencodingsociety.com
-  KASM_API_KEY_SECRET=xxxx
-  KASM_API_KEY=xxx
-  # DB Configuration, AWS RDS
-  IS_PRODUCTION=false # false = LOCAL true = DEPLOYED
-  DB_USERNAME='admin'
-  DB_PASSWORD='xxxxx'
-  ```
+# Teacher/Educator defaults
+TEACHER_USER='Health Educator'
+TEACHER_UID='educator'
+TEACHER_PASSWORD='educator123'
 
-  - Make the database and init data.
-  
-  ```bash
-  ./scripts/db_init.py
-  ```
+# AI Services
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_SERVER=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 
-  - Explore newly created SQL database
-    - Navigate too instance/volumes
-    - View/open `user_management.db`
-    - Loook at `users` table in viewer
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_SERVER=https://api.groq.com/openai/v1/chat/completions
 
-  - Run the Project
-    - Select/open `main.py` in VSCode
-    - Start with Play button
-      - Play button sub option contains Debug
-    - Click on localhost:8087 in terminal to launch
-      - Output window will contain page to launch http://localhost:8009
-    - Login using your secrets from env
+# Database Configuration
+IS_PRODUCTION=false
+DB_USERNAME='admin'
+DB_PASSWORD='your_db_password_here'
+```
 
-  - Basic API test
-    - [Jokes](http://localhost:8009/api/jokes/)
+### Initialize Database
 
-### User Operations
-| Purpose | Correct Endpoint | What It Does |
-|---------|-----------------|--------------|
-| **Login** | `/api/authenticate` | Authenticates user & sets cookie |
-| **Get User** | `/api/id` | Gets current logged-in user |
-| **Signup** | `/api/user` | Creates new user account |
-| **Posts** | `/api/post/all` | Gets all social media posts |
-| **Create Post** | `/api/post` | Creates a new post |
-| **Gemini AI** | `/api/gemini` | Chat with AI assistant |
+```bash
+python scripts/db_init.py
+```
 
-### MicroBlog Operations
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/microblog` | Create new post |
-| GET | `/api/microblog` | Get posts (with filters) |
-| PUT | `/api/microblog` | Update post |
-| DELETE | `/api/microblog` | Delete post |
+### Run the Server
 
-**Query Parameters for GET:**
-- `?topicId=1` - Posts for specific topic
-- `?userId=123` - Posts by specific user  
-- `?search=flask` - Search content
-- `?limit=20` - Limit results
+```bash
+# Development with debug mode
+python main.py
 
-### MicroBlog Interactions
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/microblog/reply` | Add reply to post |
-| POST | `/api/microblog/reaction` | Add reaction (👍, ❤️, etc.) |
-| DELETE | `/api/microblog/reaction` | Remove reaction |
+# Server will start at http://localhost:8009
+```
 
-### Microblog Page Integration
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/microblog/page/<page_key>` | Get posts for specific page |
-| POST | `/api/microblog/topics/auto-create` | Auto-create topic for page |
-| GET | `/api/microblog/topics?pagePath=X` | Get topic by page path |
+## VSCode Setup
 
-## Idea
+1. **Open in VSCode:**
+   ```bash
+   code .
+   ```
 
-### Files and Directories in this Project
+2. **Configure Python Interpreter:**
+   - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
+   - Search: `Python: Select Interpreter`
+   - Choose `./venv/bin/python`
 
-The key files and directories in this project are in these online articles.
+3. **Install Extensions:**
+   - Python
+   - Pylance
+   - SQLite3 Editor
 
-[Python/Flask](https://pages.opencodingsociety.com/python/flask)
+4. **View Database:**
+   - Navigate to `instance/volumes/user_management.db`
+   - Open with SQLite3 Editor to inspect tables
 
-[Legacy - Flask Intro](https://pages.opencodingsociety.com/flask-overview)
+5. **Start Debugging:**
+   - Open `main.py`
+   - Press F5 or click the Play button
+   - Click localhost link in terminal to launch
 
-### Implementation Summary
+## API Endpoints
 
-#### Oct 2025
+### Authentication & User Management
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| POST | `/api/authenticate` | Login user and receive JWT token | No |
+| GET | `/api/id` | Get current logged-in user profile | Yes |
+| POST | `/api/user` | Create new user account (sign up) | No |
+| GET | `/api/users` | List all users (admin only) | Yes (Admin) |
+| PUT | `/api/user/<id>` | Update user profile | Yes |
+| DELETE | `/api/user/<id>` | Delete user account | Yes (Admin) |
 
-> Updates for 2025-2026 school year.  Focus on documentation and API functionality.
+### Cancer Risk Assessment
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| GET | `/api/cancer-risk/predict` | Get overall cancer risk prediction | Yes |
+| POST | `/api/cancer-risk/predict` | Calculate cancer risk from patient data | Yes |
+| GET | `/api/cancer-risk/predict-types` | Get per-cancer-type risk breakdown | Yes |
+| GET | `/api/cancer-risk/factors` | Get list of identified risk factors | Yes |
+| GET | `/api/cancer-risk/feature-importance` | Get feature importance for risk model | Yes |
+| POST | `/api/cancer/risk-analysis` | Generate personalized AI risk analysis | Yes |
 
-- Work to make documentation materials useful.
-- Add gemini API's
-- Add microblog API's, social medai support
+### Treatment & Medication Management
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| GET | `/api/treatments` | Get all active treatments for user | Yes |
+| POST | `/api/treatments` | Create new treatment/medication | Yes |
+| PUT | `/api/treatments` | Update existing treatment | Yes |
+| DELETE | `/api/treatments` | Soft-delete treatment (mark inactive) | Yes |
+| GET | `/api/treatment/log` | Get treatment logs for specific date | Yes |
+| POST | `/api/treatment/log` | Log medication taken (adherence tracking) | Yes |
+| GET | `/api/medication/info?name=X` | Get AI-generated medication description | Yes |
 
-#### July 2024
+### Admin & Reporting
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| GET | `/api/admin/treatments` | View all patient treatments | Yes (Admin) |
+| GET | `/api/admin/treatment/logs` | View all patient treatment logs | Yes (Admin) |
+| GET | `/api/admin/treatment/notes` | View all patient treatment notes | Yes (Admin) |
+| DELETE | `/api/admin/treatment/notes` | Delete treatment notes | Yes (Admin) |
 
-> Updates for 2024 too 2025 school year.  Primary addition is a fully functional backend for JWT login system.
+### AI Chatbot
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| POST | `/api/acs-chat` | Chat with ACS cancer risk assistant | Yes |
 
-- Full support for JWT cookies
-- The API's for CRUD methods
-- The model definition User Class and related tables
-- SQLite and RDS support
-- Minimal Server side UI in Jinja2
+### Social Features
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| GET | `/api/post/all` | Get all social posts | Yes |
+| POST | `/api/post` | Create new post | Yes |
+| GET | `/api/microblog` | Get microblog posts with filters | Yes |
+| POST | `/api/microblog` | Create microblog post | Yes |
 
-#### July 2023
+## Database Models
 
-> Updates for 2023 to 2024 school year.
+### User
+```python
+- uid: String (unique identifier)
+- name: String
+- email: String
+- password: String (hashed with salt)
+- role: String (Admin, Educator, or Patient)
+- created_at: DateTime
+- profile_picture: String (optional)
+```
 
-- Update README with File Descriptions (anatomy)
-- Add JWT and add security features using a SQLite user database
-- Add migrate.sh to support sqlite schema and data upgrade
+### Treatment
+```python
+- id: Integer (primary key)
+- user_id: Integer (foreign key)
+- medication_name: String (required)
+- dosage: String (e.g., "500 mg")
+- frequency: String (daily, weekly, etc.)
+- times: JSON list of times (e.g., ["08:00", "20:00"])
+- color: String (hex color for UI)
+- notes: Text (custom user notes)
+- ai_description: Text (cached from Gemini)
+- start_date: Date
+- end_date: Date (nullable)
+- active: Boolean (soft delete flag)
+- created_at: DateTime
+```
 
-#### January 2023
+### TreatmentLog
+```python
+- id: Integer (primary key)
+- treatment_id: Integer (foreign key)
+- user_id: Integer (foreign key)
+- log_date: Date (when medication was tracked)
+- time_slot: String (e.g., "08:00" or "anytime")
+- taken: Boolean (was medication taken)
+- taken_at: DateTime (timestamp when marked as taken)
+```
 
-> This project focuses on being a Python backend server.  Intentions are to only have simple UIs an perhaps some Administrative UIs.
+### CancerRiskProfile
+```python
+- Demographics: age, sex, race/ethnicity
+- Lifestyle: smoking_status, pack_years, bmi, alcohol, physical_activity, diet
+- Medical History: family_history, diabetes, hepatitis, hpv, h_pylori, ibd
+- Environmental: occupational_exposure, uv_exposure, radiation_history
+- Genetic: genetic_mutation flags
+```
 
-#### September 2021
+## Project Structure
 
-> Basic UI elements were implemented showing server side Flask with Jinja 2 capabilities.
+```
+ACSmap_backend/
+├── main.py                      # Application entry point
+├── __init__.py                  # Flask app initialization
+├── api/                         # REST API blueprints
+│   ├── authenticate.py          # Authentication endpoints
+│   ├── treatment.py             # Treatment/medication endpoints
+│   ├── cancer_risk.py           # Cancer risk prediction endpoints
+│   ├── acs_chat_api.py          # Gemini AI chat endpoint
+│   ├── treatment_notes_api.py   # Treatment notes endpoints
+│   └── ...                      # Other API modules
+├── model/                       # SQLAlchemy database models
+│   ├── user.py                  # User model
+│   ├── treatment.py             # Treatment & TreatmentLog models
+│   ├── cancer_risk.py           # Cancer risk ML model
+│   ├── treatment_notes.py       # Treatment notes model
+│   └── ...                      # Other data models
+├── scripts/                     # Utility scripts
+│   ├── db_init.py              # Initialize/reset database
+│   ├── db_migrate-prod2sqlite.py # Pull production DB to local
+│   └── db_restore-sqlite2prod.py # Push local DB to production
+├── templates/                   # Jinja2 HTML templates (admin UI)
+├── static/                      # Static files (CSS, JS, images)
+├── instance/volumes/            # Runtime SQLite database storage
+│   └── user_management.db      # Main application database
+├── requirements.txt             # Python package dependencies
+└── .env                        # Environment variables (create this)
+```
 
-- The Project entry point is main.py, this enables the Flask Web App and provides the capability to render templates (HTML files)
-- The main.py is the  Web Server Gateway Interface, essentially it contains an HTTP route and HTML file relationship.  The Python code constructs WSGI relationships for index, kangaroos, walruses, and hawkers.
-- The project structure contains many directories and files.  The template directory (containing HTML files) and static directory (containing JS files) are common standards for HTML coding.  Static files can be pictures and videos, in this project they are mostly javascript backgrounds.
-- WSGI templates: index.html, kangaroos.html, ... are aligned with routes in main.py.
-- Other templates support WSGI templates.  The base.html template contains common Head, Style, Body, and Script definitions.  WSGI templates often "include" or "extend" these templates.  This is a way to reuse code.
-- The VANTA javascript statics (backgrounds) are shown and defaulted in base.html (birds) but are block-replaced as needed in other templates (solar, net, ...)
-- The Bootstrap Navbar code is in navbar.html. The base.html code includes navbar.html.  The WSGI html files extend base.html files.  This is a process of management and correlation to optimize code management.  For instance, if the menu changes discovery of navbar.html is easy, one change reflects on all WSGI html files.
-- Jinja2 variables usage is to isolate data and allow redefinitions of attributes in templates.  Observe "{% set variable = %}" syntax for definition and "{{ variable }}" for reference.
-- The base.html uses a combination of Bootstrap grid styling and custom CSS styling.  Grid styling in observation with the "<Col-3>" markers.  A Bootstrap Grid has a width of 12, thus four "Col-3" markers could fit on a Grid row.
-- A key purpose of this project is to embed links to other content.  The "href=" definition embeds hyperlinks into the rendered HTML.  The base.html file shows usage of "href={{github}}", the "{{github}}" is a Jinja2 variable.  Jinja2 variables are pre-processed by Python, a variable swap with value, before being sent to the browser.
+## Usage Examples
 
-## Database Management Workflow with Scripts
+### Login and Get JWT Token
 
-If you are working with the database, follow the below procedure to safely interact with the remote DB while applying changes locally. Certain scripts require flask to be running while others don't, so follow the instructions that the scripts provide.
+```bash
+curl -X POST http://localhost:8009/api/authenticate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "uid": "testpatient",
+    "password": "testpass123"
+  }'
 
-Note, steps 1,2,3,5 are on your development (LOCAL) server. You need to update your .env on development server and be sure all PRs are completed, pulled, and tested before you start pushing to production.
+# Response includes JWT token to use in subsequent requests
+```
 
-0. Be sure ADMIN_PASSWORD is set in .env.  You will need a venv for the python scripts.
+### Check Cancer Risk
 
-1. Initialize your local DB with clean data. For example, this would be good to see that a schema update works correctly.
+```bash
+curl -X POST http://localhost:8009/api/cancer-risk/predict \
+  -H "Content-Type: application/json" \
+  -H "Cookie: jwt_python_flask=YOUR_JWT_TOKEN" \
+  -d '{
+    "age": 55,
+    "sex": "male",
+    "race": "white",
+    "smoking_status": "former",
+    "pack_years": 15,
+    "bmi_category": "overweight",
+    "alcohol_consumption": "moderate",
+    "physical_activity": "moderate",
+    "diet_quality": "average",
+    "family_history": true,
+    "diabetes": false,
+    "hepatitis": false,
+    "hpv": false,
+    "h_pylori": false,
+    "ibd": false,
+    "radiation_history": false,
+    "immunosuppression": false,
+    "precancerous_lesions": false,
+    "occupational_exposure": false,
+    "uv_exposure": false
+  }'
+```
+
+### Add a Medication to Track
+
+```bash
+curl -X POST http://localhost:8009/api/treatments \
+  -H "Content-Type: application/json" \
+  -H "Cookie: jwt_python_flask=YOUR_JWT_TOKEN" \
+  -d '{
+    "medication_name": "Tamoxifen",
+    "dosage": "20 mg",
+    "frequency": "daily",
+    "times": ["08:00", "20:00"],
+    "color": "#FF6B6B",
+    "notes": "Take with food",
+    "start_date": "2026-05-27"
+  }'
+```
+
+### Log Medication Adherence
+
+```bash
+curl -X POST http://localhost:8009/api/treatment/log \
+  -H "Content-Type: application/json" \
+  -H "Cookie: jwt_python_flask=YOUR_JWT_TOKEN" \
+  -d '{
+    "treatment_id": 1,
+    "date": "2026-05-27",
+    "time_slot": "08:00",
+    "taken": true
+  }'
+```
+
+### Get Medication Information
+
+```bash
+curl "http://localhost:8009/api/medication/info?name=Tamoxifen" \
+  -H "Cookie: jwt_python_flask=YOUR_JWT_TOKEN"
+```
+
+### Chat with ACS Cancer Assistant
+
+```bash
+curl -X POST http://localhost:8009/api/acs-chat \
+  -H "Content-Type: application/json" \
+  -H "Cookie: jwt_python_flask=YOUR_JWT_TOKEN" \
+  -d '{
+    "message": "What lifestyle changes can reduce my lung cancer risk?"
+  }'
+```
+
+## Development Workflow
+
+### Testing Locally
+
+1. **Initialize clean database:**
    ```bash
    python scripts/db_init.py
    ```
 
-2. Pull the database content from the remote DB onto your local machine. This allows you to work with real data and test that real data works with your local changes.
+2. **Make code changes and test:**
+   - Edit files in `model/`, `api/`, or `main.py`
+   - Restart the server (Flask debug mode auto-reloads)
+   - Test endpoints with curl or Postman
+
+3. **Test cancer risk prediction:**
    ```bash
-   python scripts/db_migrate-prod2sqlite.py
+   python -m model.cancer_risk
    ```
 
-3. TEST TEST TEST! Make sure your changes work correctly with the local DB.
+### Production Deployment
 
-4. Now go onto the remote DB and back up the db using `cp sqlite.db backups/sqlite_year-month-day.db` in the volumes directory of the flask directory on cockpit. Then, run `git pull` to ensure that flask has been updated with the latest code. Then, run `python scripts/db_init.py` again to ensure that the remote DB schema is up to date with the latest code.
-
-5. Once you are satisfied with your changes, push the local DB content to the remote DB. This requires authentication, so you need to replace the ADMIN_PASSWORD in the .env file of "flask" with the production admin password.
+1. **On production server:**
    ```bash
-   python scripts/db_restore-sqlite2prod.py
+   # Backup current database
+   cp instance/volumes/user_management.db \
+      instance/volumes/backups/backup_$(date +%Y%m%d_%H%M%S).db
+   
+   # Update code
+   git pull
+   
+   # Apply any schema changes
+   python scripts/db_init.py
+   
+   # Restart Flask service
+   systemctl restart flask-app  # or your service name
    ```
 
-### Condensed DB/Schema update simple steps
-*(a copy of what's above, just condensed)*
+## Technology Stack
 
-1. Initialize local DB: `python scripts/db_init.py`
+- **Backend**: Python 3.9+ with Flask microframework
+- **Database**: SQLite (development), AWS RDS PostgreSQL (production)
+- **Authentication**: JWT (JSON Web Tokens) with secure cookies
+- **ORM**: SQLAlchemy for database abstraction
+- **Machine Learning**: scikit-learn for cancer risk prediction
+- **AI Services**: Google Gemini for natural language analysis
+- **Deployment**: Docker, AWS, Ubuntu/Linux with Nginx or Apache
+- **Security**: Bcrypt for password hashing, CORS support
 
-2. Pull production data to local: `python scripts/db_migrate-prod2sqlite.py`
+## Cancer Risk Model Details
 
-3. Test your changes locally
+### Training Data
+- 10,000 synthetic patient profiles based on US population demographics
+- Features engineered from ACS Cancer Facts & Figures 2026 data
+- Risk scores calibrated to match ACS baseline lifetime incidence rates
 
-4. On production server (in cockpit):
-   - Backup DB in volumes directory: `cp sqlite.db backups/sqlite_year-month-day.db`
-   - Update code: `git pull`
-   - Update schema: `python scripts/db_init.py`
+### Models Used
+- **Logistic Regression**: For binary high/low risk classification
+- **Random Forest**: Ensemble method with 100 trees for robust predictions
+- **Decision Tree**: Feature importance extraction
 
-5. Push local changes to production: `python scripts/db_restore-sqlite2prod.py` (Requires admin password from production in .env)
+### Output
+- Low/high risk probability
+- Risk category (low or high)
+- Model confidence score
+- Overall relative risk multiplier
+- Per-cancer-type risks (12 cancer types)
+- Key contributing factors with explanations
+- Actionable ACS screening recommendations
+
+## Security Considerations
+
+- **Password Storage**: Bcrypt with salt (not stored in plaintext)
+- **JWT Tokens**: HS256 algorithm, 24-hour expiration (configurable)
+- **HTTP-Only Cookies**: Prevents JavaScript access to tokens
+- **CORS**: Configurable for frontend domain
+- **Admin Functions**: Role-based access control (requires Admin role)
+- **Data Privacy**: Support for user data export and deletion
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support & Documentation
+
+For more information:
+- [American Cancer Society](https://www.cancer.org) - Cancer facts and screening guidelines
+- [ACS Cancer Facts & Figures 2026](https://www.cancer.org/research/cancer-facts-statistics/all-cancer-facts-figures.html)
+- Reach out to the development team for technical questions
+
+## Disclaimer
+
+This application is for educational and informational purposes. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider for medical decisions.
